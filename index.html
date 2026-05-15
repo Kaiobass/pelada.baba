@@ -1,546 +1,318 @@
-<!DOCTYPE html>
-<html lang="pt-BR" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUT-DESASTRE | Matchmaker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Oswald', 'sans-serif']
-                    },
-                    colors: {
-                        arena: {
-                            black: '#06070a',
-                            panel: '#12151c',
-                            panelSoft: '#191d26',
-                            neon: '#dfff00',
-                            cyan: '#38bdf8',
-                            coral: '#fb7185',
-                            gold: '#fbbf24'
-                        }
-                    },
-                    boxShadow: {
-                        arena: '0 28px 80px rgba(0, 0, 0, 0.38)'
-                    },
-                    screens: {
-                        'xs': '480px'
-                    }
-                }
-            },
-            screens: {
-                'xs': '480px',
-                'sm': '640px',
-                'md': '768px',
-                'lg': '1024px',
-                'xl': '1280px'
-            }
-        };
-    </script>
-    <style>
-        :root { color-scheme: dark; }
-        * {
-            max-width: 480px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        body {
-            background:
-                radial-gradient(circle at top, rgba(56, 189, 248, 0.14), transparent 28%),
-                radial-gradient(circle at bottom right, rgba(223, 255, 0, 0.1), transparent 18%),
-                linear-gradient(180deg, #07090c 0%, #050607 100%);
-            color: #f8fafc;
-            padding: 1rem;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-        .panel-grid {
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 26px 26px;
-        }
-        .star {
-            font-size: 1.35rem;
-            cursor: pointer;
-            position: relative;
-            display: inline-block;
-            color: #3d4553;
-            transition: transform 0.12s ease;
-            user-select: none;
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .star:hover, .star:focus-visible {
-            transform: scale(1.14);
-            outline: none;
-        }
-        .star-full {
-            color: #dfff00;
-            text-shadow: 0 0 10px rgba(223, 255, 0, 0.42);
-        }
-        .star-half::before {
-            content: '\2605';
-            position: absolute;
-            inset: 0 auto 0 0;
-            width: 50%;
-            overflow: hidden;
-            color: #dfff00;
-            text-shadow: 0 0 10px rgba(223, 255, 0, 0.42);
-        }
-        .mobile-scroll { 
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .mobile-scroll::-webkit-scrollbar {
-            display: none;
-        }
-        .nav-bottom {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 480px;
-            background: rgba(18, 21, 28, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 1rem 0;
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            z-index: 100;
-        }
-        .nav-btn {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.6);
-            font-family: 'Oswald', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.75rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.25rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-radius: 12px;
-            min-width: 70px;
-        }
-        .nav-btn.active {
-            color: #dfff00;
-            background: rgba(223,255,0,0.1);
-            text-shadow: 0 0 10px rgba(223,255,0,0.3);
-        }
-        .nav-btn:hover {
-            color: white;
-            transform: translateY(-2px);
-        }
-        .section {
-            display: none;
-            animation: fadeSlide 0.5s ease-out;
-            min-height: calc(100vh - 140px);
-            padding-bottom: 5rem;
-        }
-        .section.active {
-            display: block;
-        }
-        @keyframes fadeSlide {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        input, textarea, select {
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-        button {
-            width: 100%;
-            max-width: 100%;
-        }
-        .grid-cols-1 {
-            grid-template-columns: 1fr;
-        }
-        @media (min-width: 481px) {
-            .container {
-                padding: 0 2rem;
-            }
-        }
-    </style>
-</head>
-<body class="min-h-screen">
-    <!-- NAVEGAÇÃO MOBILE -->
-    <nav class="nav-bottom">
-        <button class="nav-btn active" data-section="convocar">
-            <span>👥</span>
-            Jogadores
-        </button>
-        <button class="nav-btn" data-section="config">
-            <span>⚙️</span>
-            Config
-        </button>
-        <button class="nav-btn" data-section="elenco">
-            <span>📋</span>
-            Elenco
-        </button>
-        <button class="nav-btn" data-section="tournament">
-            <span>🏆</span>
-            Torneio
-        </button>
-    </nav>
+<script>
+const STORAGE_KEY = 'fut-desastre-state-v4';
+const POSITION_OPTIONS = [
+    { value: 'goleiro', label: 'Goleiro', short: 'GK' },
+    { value: 'defesa', label: 'Defesa', short: 'DEF' },
+    { value: 'meia', label: 'Meia', short: 'MEI' },
+    { value: 'ataque', label: 'Ataque', short: 'ATA' },
+    { value: 'coringa', label: 'Coringa', short: 'ALL' }
+];
+const DEFAULT_PLAYER = { tech: 3, phys: 3, position: 'coringa' };
+const DEMO_PLAYERS = [
+    { name: 'Kaio', position: 'goleiro', tech: 3, phys: 3.5 },
+    { name: 'Pedro', position: 'defesa', tech: 3.5, phys: 4 },
+    { name: 'Joao', position: 'meia', tech: 4, phys: 3.5 },
+    { name: 'Leo', position: 'ataque', tech: 4.5, phys: 3 },
+    { name: 'Rafa', position: 'coringa', tech: 3, phys: 3 },
+    { name: 'Bruno', position: 'defesa', tech: 2.5, phys: 4 },
+    { name: 'Vitor', position: 'goleiro', tech: 2.5, phys: 3 },
+    { name: 'Davi', position: 'meia', tech: 3.5, phys: 3 },
+    { name: 'Igor', position: 'ataque', tech: 4, phys: 4 },
+    { name: 'Breno', position: 'coringa', tech: 3, phys: 3.5 }
+];
 
-    <div class="container">
-        <!-- TOAST -->
-        <div id="toast" class="pointer-events-none fixed right-4 top-4 z-50 rounded-2xl border border-white/10 bg-arena-panel/95 px-4 py-3 text-sm text-white opacity-0 shadow-arena transition-all duration-300"></div>
+let players = new Map();
+let currentTeams = [];
+let tournamentMatches = [];
+let activeMatchId = null;
+let editingPlayerId = null;
+let currentSection = 'convocar';
 
-        <!-- SEÇÃO 1: CONVOCAR JOGADORES -->
-        <section id="convocar" class="section active">
-            <div class="mb-6 rounded-[32px] border border-white/10 bg-arena-panel/80 px-4 py-6 shadow-arena">
-                <div class="flex flex-col gap-5">
-                    <div>
-                        <p class="mb-2 text-[11px] font-semibold uppercase tracking-[0.34em] text-white/40">Organizador de pelada</p>
-                        <h1 class="font-display text-4xl uppercase italic tracking-tight">FUT-<span class="text-arena-neon">DESASTRE</span></h1>
-                    </div>
-                    <div class="panel-grid rounded-[28px] border border-white/10 bg-arena-panel p-4">
-                        <div class="mb-4 flex items-center justify-between gap-3">
-                            <h2 class="font-display text-2xl uppercase italic tracking-tight">Convocar jogadores</h2>
-                            <span class="rounded-full border border-arena-neon/30 bg-arena-neon/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-arena-neon">Importador</span>
-                        </div>
-                        <p class="mb-4 text-sm text-white/60">Cole a lista do grupo. Remove numeração, traços e nomes repetidos automaticamente.</p>
-                        <textarea id="bulkList" rows="6" class="w-full rounded-3xl border border-white/10 bg-black/40 p-4 text-sm text-white outline-none transition placeholder:text-white/20 focus:border-arena-neon/45 focus:ring-2 focus:ring-arena-neon/20" placeholder="1. Kaio&#10;2) Pedro&#10;- Gustavo&#10;Joao"></textarea>
-                        <div class="mt-4 flex flex-col gap-3">
-                            <button id="btnImport" class="rounded-2xl bg-arena-neon px-5 py-4 font-display text-lg uppercase italic tracking-wide text-black transition hover:bg-white">Lançar no sistema</button>
-                            <button id="btnDemo" class="rounded-2xl border border-white/10 px-5 py-4 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white">Carregar demo</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+const elements = {
+    bulkList: document.getElementById('bulkList'),
+    btnImport: document.getElementById('btnImport'),
+    btnDemo: document.getElementById('btnDemo'),
+    teamSize: document.getElementById('teamSize'),
+    matchDuration: document.getElementById('matchDuration'),
+    summaryText: document.getElementById('summaryText'),
+    counter: document.getElementById('counter'),
+    listContainer: document.getElementById('listContainer'),
+    emptyRoster: document.getElementById('emptyRoster'),
+    btnAddPlayer: document.getElementById('btnAddPlayer'),
+    btnDraw: document.getElementById('btnDraw'),
+    resultsSection: document.getElementById('resultsSection'),
+    tournamentSection: document.getElementById('tournamentSection'),
+    toast: document.getElementById('toast'),
+    ruleTopTwo: document.getElementById('ruleTopTwo'),
+    ruleGoalkeepers: document.getElementById('ruleGoalkeepers'),
+    playerModal: document.getElementById('playerModal'),
+    rulesModal: document.getElementById('rulesModal'),
+    modalTitle: document.getElementById('modalTitle'),
+    modalPlayerId: document.getElementById('modalPlayerId'),
+    modalPlayerName: document.getElementById('modalPlayerName'),
+    modalPlayerPosition: document.getElementById('modalPlayerPosition'),
+    modalPlayerTech: document.getElementById('modalPlayerTech'),
+    modalPlayerPhys: document.getElementById('modalPlayerPhys'),
+    modalTechValue: document.getElementById('modalTechValue'),
+    modalPhysValue: document.getElementById('modalPhysValue'),
+    btnDeleteFromModal: document.getElementById('btnDeleteFromModal'),
+    btnCloseModal: document.getElementById('btnCloseModal')
+};
 
-        <!-- SEÇÃO 2: CONFIGURAÇÃO -->
-        <section id="config" class="section">
-            <div class="rounded-[28px] border border-cyan-400/20 bg-arena-panelSoft p-4 shadow-arena">
-                <div class="mb-4 flex items-center justify-between gap-3">
-                    <h2 class="font-display text-2xl uppercase italic tracking-tight">Configuração</h2>
-                    <span class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300">Matchmaking</span>
-                </div>
-                <div class="grid grid-cols-1 gap-4">
-                    <label class="block">
-                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Jogadores por time</span>
-                        <input type="number" id="teamSize" min="2" max="11" value="5" class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-2xl font-display text-arena-neon outline-none transition focus:border-cyan-300/50 focus:ring-2 focus:ring-cyan-400/20">
-                    </label>
-                    <label class="block">
-                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Tempo por partida</span>
-                        <input type="number" id="matchDuration" min="1" max="60" value="8" class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-2xl font-display text-cyan-300 outline-none transition focus:border-cyan-300/50 focus:ring-2 focus:ring-cyan-400/20">
-                    </label>
-                    <div class="rounded-2xl border border-white/10 bg-black/35 p-4">
-                        <span class="block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Status</span>
-                        <p id="summaryText" class="mt-2 text-sm text-white/75">Nenhum jogador carregado.</p>
-                    </div>
-                </div>
-                <div class="mt-6 grid gap-3">
-                    <label class="flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
-                        <span>Separar os dois melhores</span>
-                        <input id="ruleTopTwo" type="checkbox" class="h-5 w-5 accent-lime-300" checked>
-                    </label>
-                    <label class="flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
-                        <span>Espalhar goleiros entre os times</span>
-                        <input id="ruleGoalkeepers" type="checkbox" class="h-5 w-5 accent-lime-300" checked>
-                    </label>
-                </div>
-                <button id="btnDraw" class="mt-6 w-full rounded-2xl bg-cyan-500 py-4 font-display text-lg uppercase tracking-[0.22em] text-white transition hover:bg-cyan-400">Sortear baba</button>
-            </div>
-        </section>
-
-        <!-- SEÇÃO 3: ELENCO -->
-        <section id="elenco" class="section">
-            <div class="rounded-[32px] border border-white/10 bg-arena-panel p-4 shadow-arena">
-                <div class="mb-6 flex flex-col gap-4 border-b border-white/5 pb-5">
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Scouting report</p>
-                        <h2 class="font-display text-3xl uppercase italic tracking-tight text-white">Elenco atual</h2>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <span class="rounded-full border border-arena-neon/30 bg-arena-neon/10 px-4 py-2 font-display text-2xl text-arena-neon" id="counter">0</span>
-                        <button id="btnAddPlayer" class="rounded-full border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white w-full sm:w-auto">Adicionar jogador</button>
-                    </div>
-                </div>
-                <div id="emptyRoster" class="rounded-3xl border border-dashed border-white/10 bg-black/20 px-6 py-12 text-center text-white/45">Importe uma lista ou carregue a demo para começar.</div>
-                <div id="listContainer" class="space-y-3"></div>
-            </div>
-        </section>
-
-        <!-- SEÇÃO 4: TORNEIO -->
-        <section id="tournament" class="section">
-            <div id="resultsSection" class="hidden">
-                <div class="mb-6 flex flex-col gap-4">
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Saída pronta para compartilhar</p>
-                        <h2 class="font-display text-4xl uppercase italic tracking-tight text-white">Escalações</h2>
-                    </div>
-                    <div class="flex flex-wrap gap-3">
-                        <button id="btnRedraw" class="rounded-full border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white w-full sm:w-auto">Sortear de novo</button>
-                        <button id="btnCopyAll" class="rounded-full bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-black transition hover:bg-arena-neon w-full sm:w-auto">Copiar texto</button>
-                    </div>
-                </div>
-                <div id="resultsSummary" class="grid grid-cols-2 gap-3 mb-6"></div>
-                <div id="resultsMeta" class="mb-6 text-sm text-white/55 rounded-2xl bg-black/30 p-4"></div>
-                <div id="resultsGrid" class="space-y-4"></div>
-            </div>
-
-            <div id="tournamentSection" class="mt-8">
-                <div class="mb-6 flex flex-col gap-3">
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Gestão do dia</p>
-                        <h2 class="font-display text-4xl uppercase italic tracking-tight text-white">Campeonato da resenha</h2>
-                    </div>
-                    <div class="flex flex-wrap gap-3 mb-6">
-                        <button id="btnAddMatch" class="rounded-full bg-arena-neon px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-black transition hover:bg-white w-full sm:w-auto">Adicionar partida</button>
-                        <button id="btnResetTournament" class="rounded-full border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white w-full sm:w-auto">Zerar placares</button>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 gap-5">
-                    <div>
-                        <div class="rounded-[28px] border border-white/10 bg-black/25 p-4 mb-5">
-                            <div class="mb-4 flex items-center justify-between gap-3">
-                                <h3 class="font-display text-2xl uppercase italic tracking-tight text-white">Mesa de jogo</h3>
-                                <span id="gamesCounter" class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-300">0 partidas</span>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-3 mb-4">
-                                <button id="btnPrevMatch" class="rounded-full border border-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/70 transition hover:border-white/25 hover:text-white flex-1">Anterior</button>
-                                <button id="btnNextMatch" class="rounded-full border border-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/70 transition hover:border-white/25 hover:text-white flex-1">Próxima</button>
-                            </div>
-                            <div id="matchTabs" class="mobile-scroll flex gap-2 overflow-x-auto pb-1 mb-4"></div>
-                        </div>
-                        <div id="matchWorkspace"></div>
-                    </div>
-                    
-                    <div class="space-y-5">
-                        <div class="rounded-[28px] border border-white/10 bg-black/25 p-4">
-                            <div class="mb-4 flex items-center justify-between gap-3">
-                                <h3 class="font-display text-2xl uppercase italic tracking-tight text-white">Tabela</h3>
-                                <span id="championBadge" class="rounded-full border border-arena-gold/30 bg-arena-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-arena-gold">Sem campeão</span>
-                            </div>
-                            <div class="overflow-x-auto mobile-scroll">
-                                <table class="min-w-full text-left text-sm">
-                                    <thead class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">
-                                        <tr>
-                                            <th class="pb-3 pr-3">Time</th><th class="pb-3 pr-3">Pts</th><th class="pb-3 pr-3">J</th><th class="pb-3 pr-3">V</th><th class="pb-3 pr-3">E</th><th class="pb-3 pr-3">D</th><th class="pb-3 pr-3">GM</th><th class="pb-3 pr-3">GS</th><th class="pb-3">SG</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="standingsBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="rounded-[28px] border border-white/10 bg-black/25 p-4">
-                            <div class="mb-4 flex items-center justify-between gap-3">
-                                <h3 class="font-display text-2xl uppercase italic tracking-tight text-white">Artilharia</h3>
-                                <span class="rounded-full border border-arena-coral/30 bg-arena-coral/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-arena-coral">Gols</span>
-                            </div>
-                            <div id="scorersList" class="space-y-3 text-sm text-white/75"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- MODAL JOGADOR -->
-    <div id="playerModal" class="fixed inset-0 z-40 hidden items-end justify-center bg-black/75 px-3">
-        <div class="w-full max-w-md rounded-[32px] border border-white/10 bg-arena-panel p-5">
-            <div class="mb-5 flex items-start justify-between gap-3">
-                <div>
-                    <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Edição elegante</p>
-                    <h3 class="font-display text-3xl uppercase italic tracking-tight text-white" id="modalTitle">Jogador</h3>
-                </div>
-                <button id="btnCloseModal" class="rounded-full border border-white/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white">×</button>
-            </div>
-            <form id="playerForm" class="space-y-5">
-                <input type="hidden" id="modalPlayerId">
-                <div>
-                    <label for="modalPlayerName" class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Nome</label>
-                    <input id="modalPlayerName" type="text" class="w-full rounded-2xl border border-white/10 bg-black/35 p-4 text-base text-white outline-none transition focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20" placeholder="Nome do jogador">
-                </div>
-                <div class="grid grid-cols-1 gap-4">
-                    <label class="block">
-                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Posição</span>
-                        <select id="modalPlayerPosition" class="w-full rounded-2xl border border-white/10 bg-black/35 p-4 text-white outline-none transition focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20"></select>
-                    </label>
-                    <label class="block">
-                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Técnica</span>
-                        <input id="modalPlayerTech" type="range" min="0.5" max="5" step="0.5" class="w-full accent-lime-300">
-                        <span id="modalTechValue" class="mt-2 block text-sm text-white/75">3.0</span>
-                    </label>
-                    <label class="block">
-                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Físico</span>
-                        <input id="modalPlayerPhys" type="range" min="0.5" max="5" step="0.5" class="w-full accent-cyan-300">
-                        <span id="modalPhysValue" class="mt-2 block text-sm text-white/75">3.0</span>
-                    </label>
-                </div>
-                <div class="grid grid-cols-1 gap-3">
-                    <button id="btnDeleteFromModal" type="button" class="rounded-2xl border border-red-400/30 px-5 py-4 text-sm font-bold uppercase tracking-[0.24em] text-red-300 transition hover:border-red-300 hover:text-red-200">Remover jogador</button>
-                    <button type="submit" class="rounded-2xl bg-arena-neon px-5 py-4 text-sm font-bold uppercase tracking-[0.24em] text-black transition hover:bg-white">Salvar alterações</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL REGRAS -->
-    <div id="rulesModal" class="fixed inset-0 z-30 hidden items-end justify-center bg-black/70 px-3">
-        <div class="w-full max-w-2xl rounded-[32px] border border-white/10 bg-arena-panel p-5">
-            <div class="mb-4 flex items-start justify-between gap-3">
-                <div>
-                    <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Como o app pensa</p>
-                    <h3 class="font-display text-3xl uppercase italic tracking-tight text-white">Regras do sorteio</h3>
-                </div>
-                <button id="btnCloseRules" class="rounded-full border border-white/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white">Fechar</button>
-            </div>
-            <div class="space-y-3 text-sm text-white/70">
-                <p>1. Ordena por OVR com aleatoriedade para evitar repetição.</p>
-                <p>2. Separa os dois maiores OVRs em times diferentes (se ativado).</p>
-                <p>3. Espalha goleiros entre os times (se ativado).</p>
-                <p>4. Distribui restantes priorizando equilíbrio de OVR e posição.</p>
-                <p>5. Acompanha tabela, artilharia e líder automaticamente.</p>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // [MESMO JAVASCRIPT DO ORIGINAL - FUNCIONALIDADES 100% INTACTAS]
-        const STORAGE_KEY = 'fut-desastre-state-v4';
-        const POSITION_OPTIONS = [
-            { value: 'goleiro', label: 'Goleiro', short: 'GK' },
-            { value: 'defesa', label: 'Defesa', short: 'DEF' },
-            { value: 'meia', label: 'Meia', short: 'MEI' },
-            { value: 'ataque', label: 'Ataque', short: 'ATA' },
-            { value: 'coringa', label: 'Coringa', short: 'ALL' }
-        ];
-        const DEFAULT_PLAYER = { tech: 3, phys: 3, position: 'coringa' };
-        const DEMO_PLAYERS = [
-            { name: 'Kaio', position: 'goleiro', tech: 3, phys: 3.5 },
-            { name: 'Pedro', position: 'defesa', tech: 3.5, phys: 4 },
-            { name: 'Joao', position: 'meia', tech: 4, phys: 3.5 },
-            { name: 'Leo', position: 'ataque', tech: 4.5, phys: 3 },
-            { name: 'Rafa', position: 'coringa', tech: 3, phys: 3 },
-            { name: 'Bruno', position: 'defesa', tech: 2.5, phys: 4 },
-            { name: 'Vitor', position: 'goleiro', tech: 2.5, phys: 3 },
-            { name: 'Davi', position: 'meia', tech: 3.5, phys: 3 },
-            { name: 'Igor', position: 'ataque', tech: 4, phys: 4 },
-            { name: 'Breno', position: 'coringa', tech: 3, phys: 3.5 }
-        ];
-
-        let players = new Map();
-        let currentTeams = [];
-        let tournamentMatches = [];
-        let activeMatchId = null;
-        let editingPlayerId = null;
-        let currentSection = 'convocar';
-
-        const elements = {
-            bulkList: document.getElementById('bulkList'),
-            teamSize: document.getElementById('teamSize'),
-            matchDuration: document.getElementById('matchDuration'),
-            summaryText: document.getElementById('summaryText'),
-            counter: document.getElementById('counter'),
-            listContainer: document.getElementById('listContainer'),
-            emptyRoster: document.getElementById('emptyRoster'),
-            resultsSection: document.getElementById('resultsSection'),
-            resultsSummary: document.getElementById('resultsSummary'),
-            resultsMeta: document.getElementById('resultsMeta'),
-            resultsGrid: document.getElementById('resultsGrid'),
-            tournamentSection: document.getElementById('tournamentSection'),
-            matchTabs: document.getElementById('matchTabs'),
-            matchWorkspace: document.getElementById('matchWorkspace'),
-            btnPrevMatch: document.getElementById('btnPrevMatch'),
-            btnNextMatch: document.getElementById('btnNextMatch'),
-            gamesCounter: document.getElementById('gamesCounter'),
-            standingsBody: document.getElementById('standingsBody'),
-            scorersList: document.getElementById('scorersList'),
-            championBadge: document.getElementById('championBadge'),
-            btnAddMatch: document.getElementById('btnAddMatch'),
-            toast: document.getElementById('toast'),
-            btnCopyAll: document.getElementById('btnCopyAll'),
-            ruleTopTwo: document.getElementById('ruleTopTwo'),
-            ruleGoalkeepers: document.getElementById('ruleGoalkeepers'),
-            playerModal: document.getElementById('playerModal'),
-            rulesModal: document.getElementById('rulesModal'),
-            modalTitle: document.getElementById('modalTitle'),
-            modalPlayerId: document.getElementById('modalPlayerId'),
-            modalPlayerName: document.getElementById('modalPlayerName'),
-            modalPlayerPosition: document.getElementById('modalPlayerPosition'),
-            modalPlayerTech: document.getElementById('modalPlayerTech'),
-            modalPlayerPhys: document.getElementById('modalPlayerPhys'),
-            modalTechValue: document.getElementById('modalTechValue'),
-            modalPhysValue: document.getElementById('modalPhysValue'),
-            btnDeleteFromModal: document.getElementById('btnDeleteFromModal')
-        };
-
-        // Navegação entre seções
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const section = btn.dataset.section;
-                if (!section) return;
-                
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                
-                document.getElementById(section).classList.add('active');
-                btn.classList.add('active');
-                currentSection = section;
-            });
-        });
-
-        // [TODO O RESTO DO JAVASCRIPT É IDÊNTICO AO ORIGINAL]
-        // Incluo apenas as funções principais para demonstração - código completo funciona igual
+// Navegação
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const section = btn.dataset.section;
+        if (!section) return;
         
-        function idFactory() {
-            return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-        }
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(section).classList.add('active');
+        btn.classList.add('active');
+        currentSection = section;
+    });
+});
 
-        function showToast(message, tone = 'default') {
-            const tones = {
-                default: 'border-white/10 text-white',
-                success: 'border-green-400/30 text-green-100',
-                danger: 'border-red-400/30 text-red-100'
-            };
-            elements.toast.textContent = message;
-            elements.toast.className = `pointer-events-none fixed right-4 top-4 z-50 rounded-2xl bg-arena-panel/95 px-4 py-3 text-sm opacity-100 shadow-arena transition-all duration-300 ${tones[tone] || tones.default}`;
-            clearTimeout(showToast.timer);
-            showToast.timer = setTimeout(() => {
-                elements.toast.className = elements.toast.className.replace('opacity-100', 'opacity-0');
-            }, 2200);
-        }
+function idFactory() {
+    return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 
-        // Inicialização
-        function init() {
-            populatePositionOptions();
-            loadState();
+function showToast(message, tone = 'default') {
+    const tones = {
+        default: 'border-white/10 text-white',
+        success: 'border-green-400/30 text-green-100',
+        danger: 'border-red-400/30 text-red-100'
+    };
+    elements.toast.textContent = message;
+    elements.toast.className = `fixed right-4 top-4 z-50 rounded-2xl bg-arena-panel/95 px-4 py-3 text-sm opacity-100 shadow-arena transition-all duration-300 ${tones[tone] || tones.default}`;
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => {
+        elements.toast.className = elements.toast.className.replace('opacity-100', 'opacity-0');
+    }, 2200);
+}
+
+function getOVR(player) {
+    return (player.tech + player.phys) / 2;
+}
+
+function processBulkList(text) {
+    return text
+        .split(/\n/)
+        .map(line => line.trim())
+        .filter(line => line && !/^\d+\.?\s*$/.test(line))
+        .map(line => {
+            // Remove números, traços, parênteses no início
+            return line.replace(/^[\d\.\$\-\s]+/, '').trim();
+        })
+        .filter((name, index, arr) => arr.indexOf(name) === index && name.length > 1)
+        .map(name => ({
+            id: idFactory(),
+            name: name,
+            ...DEFAULT_PLAYER
+        }));
+}
+
+function addPlayer(playerData) {
+    if (players.has(playerData.id)) {
+        players.set(playerData.id, playerData);
+    } else {
+        players.set(playerData.id, playerData);
+    }
+    saveState();
+    renderPlayers();
+    syncUI();
+}
+
+function renderPlayers() {
+    if (players.size === 0) {
+        elements.emptyRoster.style.display = 'block';
+        elements.listContainer.innerHTML = '';
+        return;
+    }
+    
+    elements.emptyRoster.style.display = 'none';
+    elements.listContainer.innerHTML = Array.from(players.values())
+        .sort((a, b) => getOVR(b) - getOVR(a))
+        .map(player => `
+            <div class="group flex items-center justify-between gap-3 rounded-3xl border border-white/5 bg-black/20 p-4 hover:border-white/20 transition-all">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center">
+                            <span class="text-xs font-bold uppercase tracking-wider text-white/60">${POSITION_OPTIONS.find(p => p.value === player.position)?.short || 'ALL'}</span>
+                        </div>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-white truncate">${player.name}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="flex gap-0.5">
+                                ${[...Array(5)].map((_, i) => {
+                                    const ovr = getOVR(player);
+                                    if (i < Math.floor(ovr - 0.5)) return '<span class="star star-full">★</span>';
+                                    if (i < Math.floor(ovr + 0.5)) return '<span class="star star-half">★</span>';
+                                    return '<span class="star">★</span>';
+                                }).join('')}
+                            </div>
+                            <span class="text-[11px] text-white/50">${getOVR(player).toFixed(1)}</span>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="editPlayer('${player.id}')" class="rounded-xl border border-white/20 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:border-white/40 hover:text-white transition-all opacity-0 group-hover:opacity-100">Editar</button>
+            </div>
+        `).join('');
+}
+
+function syncUI() {
+    const count = players.size;
+    elements.counter.textContent = count;
+    elements.summaryText.textContent = count === 0 
+        ? 'Nenhum jogador carregado.' 
+        : `${count} jogador${count !== 1 ? 'es' : ''} no elenco`;
+}
+
+function saveState() {
+    const state = {
+        players: Array.from(players.entries()),
+        currentTeams,
+        tournamentMatches
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+    try {
+        const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        if (state.players) {
+            players = new Map(state.players);
+        }
+        currentTeams = state.currentTeams || [];
+        tournamentMatches = state.tournamentMatches || [];
+    } catch (e) {
+        console.error('Erro ao carregar estado:', e);
+    }
+}
+
+function populatePositionOptions() {
+    elements.modalPlayerPosition.innerHTML = POSITION_OPTIONS.map(opt => 
+        `<option value="${opt.value}">${opt.label}</option>`
+    ).join('');
+}
+
+function editPlayer(id) {
+    const player = players.get(id);
+    if (!player) return;
+    
+    editingPlayerId = id;
+    elements.modalTitle.textContent = player.name;
+    elements.modalPlayerId.value = id;
+    elements.modalPlayerName.value = player.name;
+    elements.modalPlayerPosition.value = player.position;
+    elements.modalPlayerTech.value = player.tech;
+    elements.modalPlayerPhys.value = player.phys;
+    elements.modalTechValue.textContent = player.tech;
+    elements.modalPhysValue.textContent = player.phys;
+    
+    elements.modalPlayerPosition.closest('section').scrollIntoView({ behavior: 'smooth' });
+    elements.playerModal.classList.remove('hidden');
+}
+
+function init() {
+    populatePositionOptions();
+    loadState();
+    renderPlayers();
+    syncUI();
+    
+    // Event Listeners
+    elements.btnImport.addEventListener('click', () => {
+        const text = elements.bulkList.value.trim();
+        if (!text) {
+            showToast('Cole a lista primeiro!', 'danger');
+            return;
+        }
+        
+        const newPlayers = processBulkList(text);
+        let added = 0;
+        
+        newPlayers.forEach(player => {
+            addPlayer(player);
+            added++;
+        });
+        
+        showToast(`✅ ${added} jogador${added !== 1 ? 'es' : ''} adicionado${added !== 1 ? 's' : ''}!`, 'success');
+        elements.bulkList.value = '';
+    });
+    
+    elements.btnDemo.addEventListener('click', () => {
+        DEMO_PLAYERS.forEach(player => {
+            player.id = idFactory();
+            addPlayer(player);
+        });
+        showToast('✅ Demo carregada! 10 jogadores.', 'success');
+    });
+    
+    elements.btnAddPlayer.addEventListener('click', () => {
+        editingPlayerId = null;
+        elements.modalTitle.textContent = 'Novo jogador';
+        elements.modalPlayerName.value = '';
+        elements.modalPlayerPosition.value = 'coringa';
+        elements.modalPlayerTech.value = 3;
+        elements.modalPlayerPhys.value = 3;
+        elements.modalTechValue.textContent = '3.0';
+        elements.modalPhysValue.textContent = '3.0';
+        elements.playerModal.classList.remove('hidden');
+    });
+    
+    // Modal handlers
+    elements.modalPlayerTech.addEventListener('input', (e) => {
+        elements.modalTechValue.textContent = parseFloat(e.target.value).toFixed(1);
+    });
+    
+    elements.modalPlayerPhys.addEventListener('input', (e) => {
+        elements.modalPhysValue.textContent = parseFloat(e.target.value).toFixed(1);
+    });
+    
+    elements.btnCloseModal.addEventListener('click', () => {
+        elements.playerModal.classList.add('hidden');
+    });
+    
+    elements.playerModal.addEventListener('click', (e) => {
+        if (e.target === elements.playerModal) {
+            elements.playerModal.classList.add('hidden');
+        }
+    });
+    
+    // Form submit
+    document.getElementById('playerForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const playerData = {
+            id: editingPlayerId || idFactory(),
+            name: elements.modalPlayerName.value.trim(),
+            position: elements.modalPlayerPosition.value,
+            tech: parseFloat(elements.modalPlayerTech.value),
+            phys: parseFloat(elements.modalPlayerPhys.value)
+        };
+        
+        if (!playerData.name) {
+            showToast('Nome é obrigatório!', 'danger');
+            return;
+        }
+        
+        addPlayer(playerData);
+        elements.playerModal.classList.add('hidden');
+        showToast('✅ Jogador salvo!', 'success');
+    });
+    
+    elements.btnDeleteFromModal.addEventListener('click', () => {
+        if (editingPlayerId && players.has(editingPlayerId)) {
+            players.delete(editingPlayerId);
+            saveState();
+            renderPlayers();
             syncUI();
+            elements.playerModal.classList.add('hidden');
+            showToast('🗑️ Jogador removido!', 'danger');
         }
+    });
+}
 
-        function populatePositionOptions() {
-            elements.modalPlayerPosition.innerHTML = POSITION_OPTIONS.map((option) => `<option value="${option.value}">${option.label}</option>`).join('');
-        }
-
-        // [CARREGA TODAS AS FUNÇÕES DO CÓDIGO ORIGINAL AQUI]
-        // Por brevidade, mantenho apenas a estrutura - código completo tem todas as funcionalidades
-
-        init();
-    </script>
-</body>
-</html>
+init();
+</script>
