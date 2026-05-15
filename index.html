@@ -1,6 +1,4 @@
-
-
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -360,7 +358,7 @@
                 info: 'border-white/10 bg-arena-panel/95 text-white shadow-arena'
             };
             
-            toast.className = fixed right-4 top-4 z-50 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl transition-all duration-300 opacity-100 pointer-events-none ${colors[type]};
+            toast.className = `fixed right-4 top-4 z-50 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl transition-all duration-300 opacity-100 pointer-events-none ${colors[type]}`;
             
             setTimeout(() => toast.classList.add('opacity-0'), 3000);
         }
@@ -376,7 +374,7 @@
                     // Carrega perfil salvo se existir
                     const savedProfile = playerProfiles.get(name.toLowerCase());
                     return {
-                        id: p${Date.now()}${Math.floor(Math.random()*1000)},
+                        id: `p${Date.now()}${Math.floor(Math.random()*1000)}`,
                         name: name.slice(0, 25),
                         position: savedProfile?.position || 'coringa',
                         tech: savedProfile?.tech || 3 + (Math.random() - 0.5),
@@ -398,7 +396,7 @@
                 ovr: getOVR(player)
             });
             localStorage.setItem(PLAYER_PROFILES_KEY, JSON.stringify(Array.from(playerProfiles.entries())));
-            showToast(💾 Perfil de ${player.name} salvo automaticamente!, 'success');
+            showToast(`💾 Perfil de ${player.name} salvo automaticamente!`, 'success');
         }
 
         function loadPlayerProfiles() {
@@ -444,7 +442,7 @@
                     goleiro: '🧤', defesa: '🛡️', meia: '⚙️', ataque: '🔥', coringa: '🎭'
                 }[player.position] || '⚽';
                 
-                return 
+                return `
                     <div class="group flex items-center justify-between gap-4 rounded-3xl border border-white/8 bg-gradient-to-r from-black/20 to-black/10 p-4 hover:border-arena-neon/30 hover:bg-arena-neon/5 transition-all hover:shadow-arena">
                         <div class="flex items-center gap-3 flex-1">
                             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/15 to-white/5 flex items-center justify-center shadow-lg">
@@ -464,7 +462,7 @@
                             ✏️ Editar
                         </button>
                     </div>
-                ;
+                `;
             }).join('');
         }
 
@@ -473,7 +471,7 @@
             elements.counter.textContent = count;
             elements.summaryText.textContent = count === 0 
                 ? 'Nenhum jogador carregado. Importe uma lista!' 
-                : ✅ ${count} jogador${count !== 1 ? 'es' : ''} prontos para o sorteio;
+                : `✅ ${count} jogador${count !== 1 ? 'es' : ''} prontos para o sorteio`;
         }
 
         // SORTEIO INTELIGENTE CORRIGIDO
@@ -485,7 +483,7 @@
             
             const teamSize = parseInt(elements.teamSize.value) || 5;
             if (players.size < teamSize * 2) {
-                showToast(❌ Precisa de pelo menos ${teamSize * 2} jogadores!, 'error');
+                showToast(`❌ Precisa de pelo menos ${teamSize * 2} jogadores!`, 'error');
                 return false;
             }
 
@@ -550,7 +548,7 @@
             const teamBOVR = currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0);
             const balance = Math.abs(teamAOVR - teamBOVR).toFixed(1);
             
-            summary.innerHTML = 
+            summary.innerHTML = `
                 <div class="text-center">
                     <div class="text-4xl font-display uppercase tracking-tight text-arena-neon mb-2">Time A</div>
                     <div class="text-2xl font-bold text-white">${teamAOVR.toFixed(1)}</div>
@@ -559,11 +557,11 @@
                     <div class="text-4xl font-display uppercase tracking-tight text-cyan-400 mb-2">Time B</div>
                     <div class="text-2xl font-bold text-white">${teamBOVR.toFixed(1)}</div>
                 </div>
-            ;
+            `;
             
             grid.innerHTML = currentTeams.map((team, teamIndex) => {
                 const teamOVR = team.reduce((sum, p) => sum + getOVR(p), 0).toFixed(1);
-                return 
+                return `
                     <div class="rounded-3xl border-2 ${teamIndex === 0 ? 'border-arena-neon/50 bg-arena-neon/5' : 'border-cyan-400/50 bg-cyan-400/5'} p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-display text-2xl uppercase italic tracking-tight ${teamIndex === 0 ? 'text-arena-neon' : 'text-cyan-400'}">
@@ -572,21 +570,21 @@
                             <div class="text-xl font-bold text-white">${teamOVR}</div>
                         </div>
                         <div class="space-y-2">
-                            ${team.map(player => 
+                            ${team.map(player => `
                                 <div class="flex items-center justify-between p-3 rounded-2xl bg-black/30 hover:bg-black/50 transition-all">
                                     <span class="font-semibold text-white">${player.name}</span>
                                     <span class="text-sm text-white/70">${getOVR(player).toFixed(1)}</span>
                                 </div>
-                            ).join('')}
+                            `).join('')}
                         </div>
                     </div>
-                ;
-            }).join('') + 
+                `;
+            }).join('') + `
                 <div class="text-center mt-6 p-4 rounded-3xl bg-gradient-to-r from-arena-neon/10 to-cyan-400/10 border border-white/10">
                     <p class="text-sm text-white/70 mb-1">⚖️ BALANÇO DOS TIMES</p>
                     <p class="text-xl font-bold text-arena-neon">DIFERENÇA: ${balance} OVR</p>
                 </div>
-            ;
+            `;
         }
 
         // State management
@@ -620,7 +618,7 @@
             elements.modalPlayerPhys.value = player.phys || 3;
             elements.modalTechValue.textContent = (player.tech || 3).toFixed(1);
             elements.modalPhysValue.textContent = (player.phys || 3).toFixed(1);
-            elements.modalTitle.textContent = Editar: ${player.name};
+            elements.modalTitle.textContent = `Editar: ${player.name}`;
             
             elements.playerModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -637,16 +635,16 @@
             const teamBOVR = currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1);
             const balance = Math.abs(teamAOVR - teamBOVR).toFixed(1);
             
-            const text = ⚽ ESCALAÇÕES FUT-DESASTRE ⚽
+            const text = `⚽ ESCALAÇÕES FUT-DESASTRE ⚽
 
 🏆 TIME A (OVR Total: ${teamAOVR})
-${currentTeams[0].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
+${currentTeams[0].map(p => `• ${p.name} (${getOVR(p).toFixed(1)})`).join('\n')}
 
 🔥 TIME B (OVR Total: ${teamBOVR})
-${currentTeams[1].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
+${currentTeams[1].map(p => `• ${p.name} (${getOVR(p).toFixed(1)})`).join('\n')}
 
 ⚖️ BALANÇO: ${balance} OVR de diferença
-🎲 Sorteado pelo FUT-DESASTRE Matchmaker;
+🎲 Sorteado pelo FUT-DESASTRE Matchmaker`;
             
             navigator.clipboard.writeText(text).then(() => {
                 showToast('📋 Times copiados com BALANÇO!', 'success');
@@ -663,7 +661,7 @@ ${currentTeams[1].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
                 const newPlayers = processBulkList(text);
                 newPlayers.forEach(addPlayer);
                 elements.bulkList.value = '';
-                showToast(✅ ${newPlayers.length} jogador${newPlayers.length > 1 ? 'es' : ''} adicionado${newPlayers.length > 1 ? 's' : ''}!, 'success');
+                showToast(`✅ ${newPlayers.length} jogador${newPlayers.length > 1 ? 'es' : ''} adicionado${newPlayers.length > 1 ? 's' : ''}!`, 'success');
             };
 
             // Demo
@@ -680,7 +678,7 @@ ${currentTeams[1].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
                     {name:'Igor',position:'ataque',tech:4.3,phys:4.2},
                     {name:'Breno',position:'coringa',tech:3.7,phys:4.0}
                 ];
-                demo.forEach(p => { p.id = demo${Math.random().toString(36).substr(2,9)}; addPlayer(p); });
+                demo.forEach(p => { p.id = `demo${Math.random().toString(36).substr(2,9)}`; addPlayer(p); });
                 showToast('🎮 Demo completa carregada!', 'success');
             };
 
@@ -711,7 +709,7 @@ ${currentTeams[1].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
 
             elements.playerForm.onsubmit = (e) => {
                 e.preventDefault();
-                const id = elements.modalPlayerId.value || p${Date.now()}${Math.random().toString(36).substr(2,9)};
+                const id = elements.modalPlayerId.value || `p${Date.now()}${Math.random().toString(36).substr(2,9)}`;
                 const player = {
                     id, 
                     name: elements.modalPlayerName.value.trim(),
@@ -734,7 +732,7 @@ ${currentTeams[1].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
                     renderPlayers();
                     updateSummary();
                     closeModal();
-                    showToast(🗑️ ${player.name} removido!, 'error');
+                    showToast(`🗑️ ${player.name} removido!`, 'error');
                 }
             };
 
@@ -763,7 +761,3 @@ ${currentTeams[1].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
     </script>
 </body>
 </html>
-
-
-
-  
