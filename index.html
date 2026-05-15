@@ -4,21 +4,13 @@
   <meta charset="UTF-8">
   <title>Fut-Desastre</title>
   <style>
-    /* Reset básico */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Arial Black', sans-serif;
       background: radial-gradient(circle at top, #000 60%, #111);
       color: #FFD700;
-      margin: 0;
-      padding: 0;
+      overflow-x: hidden;
     }
-
     header {
       text-align: center;
       padding: 15px;
@@ -27,19 +19,24 @@
       font-weight: bold;
       text-shadow: 0px 0px 10px #FFD700;
     }
-
     .container {
       width: 100%;
-      max-width: 480px; /* mobile first */
+      max-width: 480px;
       margin: auto;
       padding: 15px;
     }
-
-    h2 {
-      font-size: 1.2em;
-      margin: 15px 0 10px;
+    section {
+      display: none;
+      animation: fadeSlide 0.6s ease forwards;
     }
-
+    section.active {
+      display: block;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    h2 { margin: 15px 0 10px; font-size: 1.2em; }
     input, select, button {
       width: 100%;
       margin: 5px 0;
@@ -48,7 +45,6 @@
       border: none;
       font-size: 1em;
     }
-
     button {
       background-color: #FFD700;
       color: #000;
@@ -56,12 +52,10 @@
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
     }
-
     button:hover {
       transform: scale(1.05);
       box-shadow: 0px 0px 10px #FFD700;
     }
-
     .team {
       margin-top: 15px;
       padding: 10px;
@@ -69,70 +63,90 @@
       border-radius: 10px;
       background: rgba(255, 215, 0, 0.05);
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
       font-size: 0.9em;
     }
-
     th, td {
       border: 1px solid #FFD700;
       padding: 8px;
       text-align: center;
     }
-
-    /* Responsividade para telas maiores */
-    @media (min-width: 768px) {
-      header {
-        font-size: 2em;
-      }
-      h2 {
-        font-size: 1.5em;
-      }
-      .container {
-        max-width: 700px;
-      }
+    nav {
+      display: flex;
+      justify-content: space-around;
+      background: #111;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+    nav button {
+      flex: 1;
+      margin: 0 5px;
     }
   </style>
 </head>
 <body>
   <header>⚽ Fut-Desastre ⚽</header>
   <div class="container">
-    <h2>Adicionar Jogador</h2>
-    <input type="text" id="nomeJogador" placeholder="Nome do Jogador">
-    <select id="estrelaJogador">
-      <option value="1">⭐</option>
-      <option value="2">⭐⭐</option>
-      <option value="3">⭐⭐⭐</option>
-      <option value="4">⭐⭐⭐⭐</option>
-      <option value="5">⭐⭐⭐⭐⭐</option>
-    </select>
-    <button onclick="adicionarJogador()">Adicionar</button>
+    <!-- Tela Jogadores -->
+    <section id="jogadores" class="active">
+      <h2>Adicionar Jogador</h2>
+      <input type="text" id="nomeJogador" placeholder="Nome do Jogador">
+      <select id="estrelaJogador">
+        <option value="1">⭐</option>
+        <option value="2">⭐⭐</option>
+        <option value="3">⭐⭐⭐</option>
+        <option value="4">⭐⭐⭐⭐</option>
+        <option value="5">⭐⭐⭐⭐⭐</option>
+      </select>
+      <button onclick="adicionarJogador()">Adicionar</button>
+    </section>
 
-    <h2>Sorteio de Times</h2>
-    <button onclick="sortearTimes()">Sortear Times</button>
-    <div id="timeA" class="team"><h3>Time A</h3></div>
-    <div id="timeB" class="team"><h3>Time B</h3></div>
+    <!-- Tela Sorteio -->
+    <section id="sorteio">
+      <h2>Sorteio de Times</h2>
+      <button onclick="sortearTimes()">Sortear Times</button>
+      <div id="timeA" class="team"><h3>Time A</h3></div>
+      <div id="timeB" class="team"><h3>Time B</h3></div>
+    </section>
 
-    <h2>Adicionar Partida</h2>
-    <input type="text" id="partida" placeholder="Descrição da Partida">
-    <input type="text" id="resultado" placeholder="Resultado (ex: 2x1)">
-    <button onclick="adicionarPartida()">Registrar Partida</button>
+    <!-- Tela Partidas -->
+    <section id="partidas">
+      <h2>Adicionar Partida</h2>
+      <input type="text" id="partida" placeholder="Descrição da Partida">
+      <input type="text" id="resultado" placeholder="Resultado (ex: 2x1)">
+      <button onclick="adicionarPartida()">Registrar Partida</button>
+    </section>
 
-    <h2>Tabela de Partidas</h2>
-    <table id="tabelaPartidas">
-      <tr>
-        <th>Partida</th>
-        <th>Resultado</th>
-      </tr>
-    </table>
+    <!-- Tela Tabela -->
+    <section id="tabela">
+      <h2>Tabela de Partidas</h2>
+      <table id="tabelaPartidas">
+        <tr><th>Partida</th><th>Resultado</th></tr>
+      </table>
+    </section>
   </div>
+
+  <!-- Navegação -->
+  <nav>
+    <button onclick="mostrarTela('jogadores')">Jogadores</button>
+    <button onclick="mostrarTela('sorteio')">Sorteio</button>
+    <button onclick="mostrarTela('partidas')">Partidas</button>
+    <button onclick="mostrarTela('tabela')">Tabela</button>
+  </nav>
 
   <script>
     let jogadores = [];
     let partidas = [];
+
+    function mostrarTela(id) {
+      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
 
     function adicionarJogador() {
       const nome = document.getElementById("nomeJogador").value;
