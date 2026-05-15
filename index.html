@@ -76,6 +76,7 @@
         @keyframes fadeSlide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         input, textarea, select { width: 100% !important; max-width: 100% !important; }
         button { width: 100%; max-width: 100%; }
+        .modal-overlay { backdrop-filter: blur(8px); }
         @media (min-width: 481px) { .container { padding: 0 2rem; } }
     </style>
 </head>
@@ -90,7 +91,7 @@
 
     <div class="container">
         <!-- TOAST -->
-        <div id="toast" class="fixed right-4 top-4 z-50 rounded-2xl border bg-arena-panel/95 px-4 py-3 text-sm text-white opacity-0 shadow-arena transition-all duration-300 pointer-events-none"></div>
+        <div id="toast" class="fixed right-4 top-4 z-50 rounded-2xl px-4 py-3 text-sm shadow-arena transition-all duration-300 opacity-0 pointer-events-none"></div>
 
         <!-- CONVOCAR JOGADORES -->
         <section id="convocar" class="section active">
@@ -108,8 +109,8 @@
                         <p class="mb-4 text-sm text-white/60">Cole a lista do grupo. Remove numeração, traços e nomes repetidos automaticamente.</p>
                         <textarea id="bulkList" rows="6" class="w-full rounded-3xl border border-white/10 bg-black/40 p-4 text-sm text-white outline-none transition placeholder:text-white/20 focus:border-arena-neon/45 focus:ring-2 focus:ring-arena-neon/20" placeholder="1. Kaio&#10;2) Pedro&#10;- Gustavo&#10;Joao"></textarea>
                         <div class="mt-4 flex flex-col gap-3">
-                            <button id="btnImport" class="rounded-2xl bg-arena-neon px-5 py-4 font-display text-lg uppercase italic tracking-wide text-black transition hover:bg-white">Lançar no sistema</button>
-                            <button id="btnDemo" class="rounded-2xl border border-white/10 px-5 py-4 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white">Carregar demo</button>
+                            <button id="btnImport" class="rounded-2xl bg-arena-neon px-5 py-4 font-display text-lg uppercase italic tracking-wide text-black transition hover:bg-white shadow-lg hover:shadow-arena">Lançar no sistema</button>
+                            <button id="btnDemo" class="rounded-2xl border border-white/10 px-5 py-4 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white hover:bg-white/5">Carregar demo</button>
                         </div>
                     </div>
                 </div>
@@ -119,7 +120,10 @@
         <!-- CONFIG -->
         <section id="config" class="section">
             <div class="rounded-[28px] border border-cyan-400/20 bg-arena-panelSoft p-4 shadow-arena">
-                <h2 class="font-display text-2xl uppercase italic tracking-tight mb-6">Configuração</h2>
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="font-display text-2xl uppercase italic tracking-tight">Configuração</h2>
+                    <span class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300">Matchmaking</span>
+                </div>
                 <div class="grid grid-cols-1 gap-4">
                     <label class="block">
                         <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Jogadores por time</span>
@@ -130,6 +134,17 @@
                         <p id="summaryText" class="mt-2 text-sm text-white/75">Nenhum jogador carregado.</p>
                     </div>
                 </div>
+                <div class="mt-6 grid gap-3">
+                    <label class="flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
+                        <span>Separar os dois melhores</span>
+                        <input id="ruleTopTwo" type="checkbox" class="h-5 w-5 accent-lime-300" checked>
+                    </label>
+                    <label class="flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
+                        <span>Espalhar goleiros entre os times</span>
+                        <input id="ruleGoalkeepers" type="checkbox" class="h-5 w-5 accent-lime-300" checked>
+                    </label>
+                </div>
+                <button id="btnDraw" class="mt-8 w-full rounded-2xl bg-cyan-500 py-4 font-display text-lg uppercase tracking-[0.22em] text-white transition hover:bg-cyan-400 shadow-lg hover:shadow-arena">🎲 Sortear baba</button>
             </div>
         </section>
 
@@ -143,73 +158,126 @@
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span class="rounded-full border border-arena-neon/30 bg-arena-neon/10 px-4 py-2 font-display text-2xl text-arena-neon" id="counter">0</span>
-                        <button id="btnAddPlayer" class="rounded-full border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white">Adicionar jogador</button>
+                        <button id="btnAddPlayer" class="rounded-full border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white hover:bg-white/5">+ Adicionar jogador</button>
                     </div>
                 </div>
-                <div id="emptyRoster" class="rounded-3xl border border-dashed border-white/10 bg-black/20 px-6 py-12 text-center text-white/45">Importe uma lista ou carregue a demo para começar.</div>
-                <div id="listContainer" class="space-y-3"></div>
+                <div id="emptyRoster" class="rounded-3xl border border-dashed border-white/10 bg-black/20 px-6 py-12 text-center text-white/45">
+                    <div class="mb-4">👥</div>
+                    <p>Importe uma lista ou carregue a demo para começar.</p>
+                </div>
+                <div id="listContainer" class="space-y-3 max-h-[60vh] overflow-y-auto"></div>
             </div>
         </section>
 
-        <!-- TORNEIO (BÁSICO) -->
+        <!-- TORNEIO COMPLETO -->
         <section id="tournament" class="section">
-            <div class="text-center py-12 text-white/50">
-                <h2 class="font-display text-3xl uppercase italic tracking-tight mb-4">🏆 Torneio</h2>
-                <p>Carregue jogadores primeiro para habilitar o torneio!</p>
+            <div id="resultsSection" class="hidden">
+                <div class="mb-6 flex flex-col gap-4">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Saída pronta para compartilhar</p>
+                        <h2 class="font-display text-4xl uppercase italic tracking-tight text-white">Escalações</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button id="btnRedraw" class="rounded-full border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white hover:bg-white/5 flex-1">Sortear de novo</button>
+                        <button id="btnCopyAll" class="rounded-full bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-black transition hover:bg-arena-neon flex-1">📋 Copiar</button>
+                    </div>
+                </div>
+                <div id="resultsSummary" class="grid grid-cols-2 gap-4 mb-6"></div>
+                <div id="resultsGrid" class="space-y-4"></div>
+            </div>
+
+            <div id="tournamentSection">
+                <div class="mb-6 flex flex-col gap-3">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Gestão do dia</p>
+                        <h2 class="font-display text-4xl uppercase italic tracking-tight text-white">Campeonato da resenha</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button id="btnAddMatch" class="rounded-full bg-arena-neon px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-black transition hover:bg-white shadow-lg flex-1">+ Nova partida</button>
+                        <button id="btnResetTournament" class="rounded-full border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white flex-1">Zerar tudo</button>
+                    </div>
+                </div>
+                <div id="tournamentContent" class="text-center py-12 text-white/50">
+                    <div class="mb-4">⚽</div>
+                    <h3 class="font-display text-2xl uppercase italic tracking-tight mb-2">Sem partidas</h3>
+                    <p>Adicione a primeira partida ou carregue jogadores</p>
+                </div>
             </div>
         </section>
     </div>
 
-    <!-- MODAL JOGADOR -->
-    <div id="playerModal" class="fixed inset-0 z-40 hidden flex items-end justify-center bg-black/75 px-3">
-        <div class="w-full max-w-md rounded-[32px] border border-white/10 bg-arena-panel p-5">
-            <div class="mb-5 flex items-start justify-between">
+    <!-- MODAL JOGADOR - CORRIGIDO -->
+    <div id="playerModal" class="fixed inset-0 z-[9999] hidden flex items-end justify-center bg-black/80 modal-overlay px-3">
+        <div class="w-full max-w-md rounded-[32px] border-2 border-white/15 bg-gradient-to-b from-arena-panel/95 to-arena-panel p-6 shadow-2xl shadow-arena max-h-[90vh] overflow-y-auto">
+            <div class="mb-6 flex items-start justify-between sticky top-0 bg-arena-panel/95 backdrop-blur-sm pt-6 pb-4 -mx-6 px-6 border-b border-white/5">
                 <div>
                     <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Edição elegante</p>
-                    <h3 class="font-display text-3xl uppercase italic tracking-tight text-white" id="modalTitle">Jogador</h3>
+                    <h3 class="font-display text-3xl uppercase italic tracking-tight text-white" id="modalTitle">Novo jogador</h3>
                 </div>
-                <button id="btnCloseModal" class="rounded-full border border-white/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.24em] text-white/70 hover:border-white/25 hover:text-white">×</button>
+                <button id="btnCloseModal" class="rounded-full border border-white/20 px-3 py-2 text-lg font-bold text-white/70 hover:border-white/40 hover:text-white transition-all">×</button>
             </div>
-            <form id="playerForm" class="space-y-5">
+            
+            <form id="playerForm" class="space-y-6">
                 <input type="hidden" id="modalPlayerId">
+                
                 <div>
-                    <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Nome</label>
-                    <input id="modalPlayerName" type="text" class="w-full rounded-2xl border border-white/10 bg-black/35 p-4 text-base text-white outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20" placeholder="Nome do jogador" required>
+                    <label for="modalPlayerName" class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Nome completo</label>
+                    <input id="modalPlayerName" type="text" required 
+                           class="w-full rounded-2xl border border-white/15 bg-black/30 p-4 text-lg font-semibold text-white outline-none transition-all focus:border-arena-neon/50 focus:ring-4 focus:ring-arena-neon/20 focus:bg-black/40 placeholder:text-white/30" 
+                           placeholder="Digite o nome do jogador">
                 </div>
-                <div class="grid grid-cols-1 gap-4">
-                    <label class="block">
-                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Posição</span>
-                        <select id="modalPlayerPosition" class="w-full rounded-2xl border border-white/10 bg-black/35 p-4 text-white focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20">
-                            <option value="goleiro">Goleiro (GK)</option>
-                            <option value="defesa">Defesa (DEF)</option>
-                            <option value="meia">Meia (MEI)</option>
-                            <option value="ataque">Ataque (ATA)</option>
-                            <option value="coringa" selected>Coringa (ALL)</option>
+                
+                <div class="grid grid-cols-1 gap-5">
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Posição principal</label>
+                        <select id="modalPlayerPosition" class="w-full rounded-2xl border border-white/15 bg-black/30 p-4 text-lg text-white font-semibold outline-none transition-all focus:border-cyan-400/50 focus:ring-4 focus:ring-cyan-400/20 focus:bg-black/40">
+                            <option value="goleiro">🧤 Goleiro (GK)</option>
+                            <option value="defesa">🛡️ Defesa (DF)</option>
+                            <option value="meia">⚙️ Meia (ME)</option>
+                            <option value="ataque">🔥 Ataque (AT)</option>
+                            <option value="coringa" selected>🎭 Coringa (ALL)</option>
                         </select>
-                    </label>
-                    <label class="block">
-                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Técnica</span>
-                        <input id="modalPlayerTech" type="range" min="0.5" max="5" step="0.5" value="3" class="w-full accent-lime-300">
-                        <span id="modalTechValue" class="mt-2 block text-sm text-white/75">3.0</span>
-                    </label>
-                    <label class="block">
-                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Físico</span>
-                        <input id="modalPlayerPhys" type="range" min="0.5" max="5" step="0.5" value="3" class="w-full accent-cyan-300">
-                        <span id="modalPhysValue" class="mt-2 block text-sm text-white/75">3.0</span>
-                    </label>
+                    </div>
+                    
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Técnica</label>
+                        <div class="relative">
+                            <input id="modalPlayerTech" type="range" min="0.5" max="5" step="0.5" value="3" class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-lime-400 hover:accent-lime-300">
+                            <div class="absolute -top-8 left-0 w-full text-center pointer-events-none">
+                                <span id="modalTechValue" class="px-2 py-1 bg-black/50 rounded-full text-sm font-bold text-lime-300">3.0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Físico</label>
+                        <div class="relative">
+                            <input id="modalPlayerPhys" type="range" min="0.5" max="5" step="0.5" value="3" class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400 hover:accent-cyan-300">
+                            <div class="absolute -top-8 left-0 w-full text-center pointer-events-none">
+                                <span id="modalPhysValue" class="px-2 py-1 bg-black/50 rounded-full text-sm font-bold text-cyan-300">3.0</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="grid grid-cols-1 gap-3">
-                    <button id="btnDeleteFromModal" type="button" class="rounded-2xl border border-red-400/30 px-5 py-4 text-sm font-bold uppercase tracking-[0.24em] text-red-300 hover:border-red-300 hover:text-red-200">Remover jogador</button>
-                    <button type="submit" class="rounded-2xl bg-arena-neon px-5 py-4 text-sm font-bold uppercase tracking-[0.24em] text-black hover:bg-white">Salvar alterações</button>
+                
+                <div class="space-y-3 pt-4 border-t border-white/5">
+                    <button id="btnDeleteFromModal" type="button" class="w-full rounded-2xl border-2 border-red-400/40 bg-red-500/10 px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-red-300 transition-all hover:border-red-400 hover:bg-red-500/20 hover:text-red-200">
+                        🗑️ Remover jogador
+                    </button>
+                    <button type="submit" class="w-full rounded-2xl bg-gradient-to-r from-arena-neon to-yellow-400 px-6 py-4 text-lg font-bold uppercase tracking-[0.2em] text-black shadow-lg hover:shadow-arena hover:scale-[1.02] transition-all">
+                        💾 Salvar alterações
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // === SISTEMA COMPLETO ===
-        const STORAGE_KEY = 'fut-desastre-v1';
+        // === SISTEMA COMPLETO V2 ===
+        const STORAGE_KEY = 'fut-desastre-v2';
         let players = new Map();
+        let currentTeams = [];
+        let tournamentData = { matches: [], standings: {} };
 
         // Elementos DOM
         const elements = {
@@ -221,6 +289,11 @@
             listContainer: document.getElementById('listContainer'),
             emptyRoster: document.getElementById('emptyRoster'),
             btnAddPlayer: document.getElementById('btnAddPlayer'),
+            btnDraw: document.getElementById('btnDraw'),
+            btnRedraw: document.getElementById('btnRedraw'),
+            btnCopyAll: document.getElementById('btnCopyAll'),
+            btnAddMatch: document.getElementById('btnAddMatch'),
+            btnResetTournament: document.getElementById('btnResetTournament'),
             toast: document.getElementById('toast'),
             playerModal: document.getElementById('playerModal'),
             modalTitle: document.getElementById('modalTitle'),
@@ -233,19 +306,29 @@
             modalPhysValue: document.getElementById('modalPhysValue'),
             btnCloseModal: document.getElementById('btnCloseModal'),
             btnDeleteFromModal: document.getElementById('btnDeleteFromModal'),
-            playerForm: document.getElementById('playerForm')
+            playerForm: document.getElementById('playerForm'),
+            resultsSection: document.getElementById('resultsSection'),
+            tournamentSection: document.getElementById('tournamentSection'),
+            tournamentContent: document.getElementById('tournamentContent'),
+            resultsSummary: document.getElementById('resultsSummary'),
+            resultsGrid: document.getElementById('resultsGrid')
         };
 
         // Inicialização
-        function init() {
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
+
+        function initApp() {
             setupNavigation();
-            loadPlayers();
+            loadState();
             renderPlayers();
             updateSummary();
             setupEventListeners();
+            updateTournamentUI();
         }
 
-        // Navegação entre abas
+        // Navegação
         function setupNavigation() {
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -261,54 +344,50 @@
             });
         }
 
-        // Toast notification
+        // Toast
         function showToast(message, type = 'info') {
             const toast = elements.toast;
             toast.textContent = message;
             
             const colors = {
-                success: 'border-green-400/30 bg-green-500/90 text-white',
-                error: 'border-red-400/30 bg-red-500/90 text-white',
-                info: 'border-white/10 bg-arena-panel/95 text-white'
+                success: 'border-green-400/30 bg-green-500/95 text-white shadow-green-500/25',
+                error: 'border-red-400/30 bg-red-500/95 text-white shadow-red-500/25',
+                info: 'border-white/10 bg-arena-panel/95 text-white shadow-arena'
             };
             
-            toast.className = `fixed right-4 top-4 z-50 rounded-2xl px-4 py-3 text-sm shadow-arena transition-all duration-300 opacity-100 pointer-events-none ${colors[type]}`;
+            toast.className = `fixed right-4 top-4 z-50 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl transition-all duration-300 opacity-100 pointer-events-none ${colors[type]}`;
             
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-            }, 2500);
+            setTimeout(() => toast.classList.add('opacity-0'), 3000);
         }
 
-        // Processar lista em massa
+        // Processar bulk list
         function processBulkList(text) {
             return text.split('\n')
                 .map(line => line.trim())
                 .filter(line => line && !/^\s*[\d\.\-\$\$\$\$\*]+\s*$/.test(line))
                 .map(line => line.replace(/^\s*[\d\.\-\$\$\$\$\*\s]+/, '').trim())
-                .filter((name, index, self) => name.length > 1 && self.indexOf(name) === index)
+                .filter((name, i, arr) => name.length > 1 && arr.indexOf(name) === i)
                 .map(name => ({
-                    id: `p${Date.now()}${Math.random().toString(36).substr(2, 9)}`,
-                    name: name.slice(0, 20),
+                    id: `p${Date.now()}${Math.floor(Math.random()*1000)}`,
+                    name: name.slice(0, 25),
                     position: 'coringa',
-                    tech: 3,
-                    phys: 3
+                    tech: 3 + (Math.random() - 0.5),
+                    phys: 3 + (Math.random() - 0.5)
                 }));
         }
 
-        // Calcular OVR
         function getOVR(player) {
-            return ((player.tech || 3) + (player.phys || 3)) / 2;
+            return Math.round(((player.tech || 3) + (player.phys || 3)) / 2 * 10) / 10;
         }
 
-        // Adicionar jogador
+        // Core functions
         function addPlayer(playerData) {
             players.set(playerData.id, playerData);
-            savePlayers();
+            saveState();
             renderPlayers();
             updateSummary();
         }
 
-        // Renderizar lista de jogadores
         function renderPlayers() {
             const container = elements.listContainer;
             const empty = elements.emptyRoster;
@@ -322,71 +401,70 @@
             empty.style.display = 'none';
             
             const sorted = Array.from(players.values()).sort((a, b) => getOVR(b) - getOVR(a));
-            
             container.innerHTML = sorted.map(player => {
                 const ovr = getOVR(player);
-                const stars = [];
+                const stars = Array(5).fill('☆').map((star, i) => {
+                    if (i < Math.floor(ovr)) return '★';
+                    if (i === Math.floor(ovr) && ovr % 1 >= 0.5) return '⭐';
+                    return star;
+                });
                 
-                for (let i = 0; i < 5; i++) {
-                    if (i < Math.floor(ovr - 0.5)) stars.push('★');
-                    else if (i < Math.floor(ovr + 0.5)) stars.push('⭐');
-                    else stars.push('☆');
-                }
-                
-                const posShort = {
-                    goleiro: 'GK', defesa: 'DF', meia: 'ME', ataque: 'AT', coringa: 'ALL'
-                }[player.position] || 'ALL';
+                const posEmoji = {
+                    goleiro: '🧤', defesa: '🛡️', meia: '⚙️', ataque: '🔥', coringa: '🎭'
+                }[player.position] || '⚽';
                 
                 return `
-                    <div class="group flex items-center justify-between gap-3 rounded-3xl border border-white/5 bg-black/20 p-4 hover:border-white/20 transition-all">
+                    <div class="group flex items-center justify-between gap-4 rounded-3xl border border-white/8 bg-gradient-to-r from-black/20 to-black/10 p-4 hover:border-arena-neon/30 hover:bg-arena-neon/5 transition-all hover:shadow-arena">
                         <div class="flex items-center gap-3 flex-1">
-                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center">
-                                <span class="text-xs font-bold uppercase tracking-wider text-white/60">${posShort}</span>
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/15 to-white/5 flex items-center justify-center shadow-lg">
+                                <span class="text-lg">${posEmoji}</span>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-white truncate">${player.name}</p>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <div class="flex gap-0.5 text-sm">${stars.join('')}</div>
-                                    <span class="text-xs text-white/50">${ovr.toFixed(1)}</span>
+                                <p class="font-bold text-lg text-white truncate">${player.name}</p>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex gap-1 text-lg">${stars.join('')}</div>
+                                    <span class="ml-2 px-2 py-1 bg-arena-neon/20 text-arena-neon text-sm font-bold rounded-full">${ovr}</span>
                                 </div>
                             </div>
                         </div>
                         <button onclick="editPlayer('${player.id}')" 
-                                class="rounded-xl border border-white/20 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white/60 
-                                 hover:border-white/40 hover:text-white transition-all opacity-0 group-hover:opacity-100">
-                            Editar
+                                class="rounded-2xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-cyan-200 
+                                 hover:from-cyan-500/40 hover:to-blue-500/40 hover:border-cyan-400 hover:text-white hover:shadow-lg transition-all shadow-md opacity-90 hover:opacity-100">
+                            ✏️ Editar
                         </button>
                     </div>
                 `;
             }).join('');
         }
 
-        // Atualizar resumo
         function updateSummary() {
             const count = players.size;
             elements.counter.textContent = count;
             elements.summaryText.textContent = count === 0 
-                ? 'Nenhum jogador carregado.' 
-                : `${count} jogador${count !== 1 ? 'es' : ''} no elenco`;
+                ? 'Nenhum jogador carregado. Importe uma lista!' 
+                : `✅ ${count} jogador${count !== 1 ? 'es' : ''} prontos para o sorteio`;
         }
 
-        // Salvar no localStorage
-        function savePlayers() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(players.entries())));
+        // State management
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                players: Array.from(players.entries()),
+                tournamentData
+            }));
         }
 
-        // Carregar do localStorage
-        function loadPlayers() {
+        function loadState() {
             try {
-                const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-                players = new Map(data);
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                if (data.players) players = new Map(data.players);
+                tournamentData = data.tournamentData || { matches: [], standings: {} };
             } catch (e) {
-                console.error('Erro ao carregar jogadores:', e);
                 players = new Map();
+                tournamentData = { matches: [], standings: {} };
             }
         }
 
-        // Editar jogador
+        // Modal functions
         function editPlayer(id) {
             const player = players.get(id);
             if (!player) return;
@@ -398,59 +476,133 @@
             elements.modalPlayerPhys.value = player.phys || 3;
             elements.modalTechValue.textContent = (player.tech || 3).toFixed(1);
             elements.modalPhysValue.textContent = (player.phys || 3).toFixed(1);
-            elements.modalTitle.textContent = player.name;
+            elements.modalTitle.textContent = `Editar: ${player.name}`;
             
             elements.playerModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+            elements.modalPlayerName.focus();
         }
 
-        // Configurar event listeners
+        function closeModal() {
+            elements.playerModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Tournament functions
+        function generateTeams() {
+            if (players.size < 4) {
+                showToast('❌ Precisa de pelo menos 4 jogadores!', 'error');
+                return false;
+            }
+            
+            const teamSize = parseInt(elements.teamSize.value) || 5;
+            if (players.size < teamSize * 2) {
+                showToast(`❌ Precisa de pelo menos ${teamSize * 2} jogadores!`, 'error');
+                return false;
+            }
+            
+            const playerList = Array.from(players.values()).sort(() => Math.random() - 0.5);
+            currentTeams = [
+                playerList.slice(0, teamSize).sort((a, b) => getOVR(b) - getOVR(a)),
+                playerList.slice(teamSize, teamSize * 2).sort((a, b) => getOVR(b) - getOVR(a))
+            ];
+            
+            renderTeams();
+            elements.resultsSection.classList.remove('hidden');
+            elements.tournamentSection.style.display = 'none';
+            showToast('🎲 Times sorteados com sucesso!', 'success');
+            return true;
+        }
+
+        function renderTeams() {
+            const summary = elements.resultsSummary;
+            const grid = elements.resultsGrid;
+            
+            summary.innerHTML = `
+                <div class="text-center">
+                    <div class="text-4xl font-display uppercase tracking-tight text-arena-neon mb-2">Time A</div>
+                    <div class="text-2xl font-bold text-white">${currentTeams[0].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)}</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-display uppercase tracking-tight text-cyan-400 mb-2">Time B</div>
+                    <div class="text-2xl font-bold text-white">${currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)}</div>
+                </div>
+            `;
+            
+            grid.innerHTML = currentTeams.map((team, teamIndex) => `
+                <div class="rounded-3xl border-2 ${teamIndex === 0 ? 'border-arena-neon/50 bg-arena-neon/5' : 'border-cyan-400/50 bg-cyan-400/5'} p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-display text-2xl uppercase italic tracking-tight ${teamIndex === 0 ? 'text-arena-neon' : 'text-cyan-400'}">
+                            ${teamIndex === 0 ? '⚡ TIME A' : '🔥 TIME B'}
+                        </h3>
+                        <div class="text-xl font-bold text-white">${team.reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)}</div>
+                    </div>
+                    <div class="space-y-2">
+                        ${team.map(player => `
+                            <div class="flex items-center justify-between p-3 rounded-2xl bg-black/30 hover:bg-black/50 transition-all">
+                                <span class="font-semibold text-white">${player.name}</span>
+                                <span class="text-sm text-white/70">${getOVR(player).toFixed(1)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function copyTeams() {
+            const text = currentTeams.map((team, i) => 
+                `=== TIME ${String.fromCharCode(65 + i)} (OVR: ${team.reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)}) ===\n` +
+                team.map(p => `• ${p.name} (${getOVR(p).toFixed(1)})`).join('\n')
+            ).join('\n\n');
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📋 Times copiados para área de transferência!', 'success');
+            });
+        }
+
+        // Event listeners
         function setupEventListeners() {
-            // Importar lista
-            elements.btnImport.addEventListener('click', () => {
+            // Import
+            elements.btnImport.onclick = () => {
                 const text = elements.bulkList.value.trim();
-                if (!text) {
-                    showToast('📝 Cole a lista primeiro!', 'error');
-                    return;
-                }
+                if (!text) return showToast('📝 Cole nomes primeiro!', 'error');
                 
                 const newPlayers = processBulkList(text);
-                if (newPlayers.length === 0) {
-                    showToast('❌ Nenhum nome válido encontrado!', 'error');
-                    return;
-                }
-                
                 newPlayers.forEach(addPlayer);
                 elements.bulkList.value = '';
                 showToast(`✅ ${newPlayers.length} jogador${newPlayers.length > 1 ? 'es' : ''} adicionado${newPlayers.length > 1 ? 's' : ''}!`, 'success');
-            });
+            };
 
             // Demo
-            elements.btnDemo.addEventListener('click', () => {
-                const demoPlayers = [
-                    { name: 'Kaio', position: 'goleiro', tech: 4, phys: 3.5 },
-                    { name: 'Pedro', position: 'defesa', tech: 3.5, phys: 4.5 },
-                    { name: 'João', position: 'meia', tech: 4.5, phys: 3.5 },
-                    { name: 'Leo', position: 'ataque', tech: 4.8, phys: 3 },
-                    { name: 'Rafa', position: 'coringa', tech: 3.5, phys: 3.5 },
-                    { name: 'Bruno', position: 'defesa', tech: 2.5, phys: 4.5 },
-                    { name: 'Vitor', position: 'goleiro', tech: 3, phys: 3 },
-                    { name: 'Davi', position: 'meia', tech: 3.8, phys: 3.5 },
-                    { name: 'Igor', position: 'ataque', tech: 4.2, phys: 4 },
-                    { name: 'Breno', position: 'coringa', tech: 3.2, phys: 3.8 }
+            elements.btnDemo.onclick = () => {
+                const demo = [
+                    {name:'Kaio',position:'goleiro',tech:4.2,phys:3.8},
+                    {name:'Pedro',position:'defesa',tech:3.8,phys:4.5},
+                    {name:'João',position:'meia',tech:4.5,phys:3.7},
+                    {name:'Leo',position:'ataque',tech:4.8,phys:3.2},
+                    {name:'Rafa',position:'coringa',tech:3.5,phys:3.8},
+                    {name:'Bruno',position:'defesa',tech:2.8,phys:4.7},
+                    {name:'Vitor',position:'goleiro',tech:3.2,phys:3.5},
+                    {name:'Davi',position:'meia',tech:4.0,phys:3.6},
+                    {name:'Igor',position:'ataque',tech:4.3,phys:4.2},
+                    {name:'Breno',position:'coringa',tech:3.7,phys:4.0}
                 ];
-                
-                demoPlayers.forEach(p => {
-                    p.id = `demo${Math.random().toString(36).substr(2, 9)}`;
-                    addPlayer(p);
-                });
-                
-                showToast('🎮 Demo com 10 jogadores carregada!', 'success');
-            });
+                demo.forEach(p => { p.id = `demo${Math.random().toString(36).substr(2,9)}`; addPlayer(p); });
+                showToast('🎮 Demo completa carregada!', 'success');
+            };
 
-            // Adicionar novo jogador
-            elements.btnAddPlayer.addEventListener('click', () => {
-                elements.modalTitle.textContent = 'Novo Jogador';
+            // Sortear
+            elements.btnDraw.onclick = () => generateTeams();
+
+            // Redraw
+            elements.btnRedraw.onclick = () => generateTeams();
+
+            // Copy
+            elements.btnCopyAll.onclick = copyTeams;
+
+            // Modal
+            elements.btnAddPlayer.onclick = () => {
+                elements.modalTitle.textContent = 'Novo jogador';
                 elements.modalPlayerName.value = '';
                 elements.modalPlayerId.value = '';
                 elements.modalPlayerPosition.value = 'coringa';
@@ -460,67 +612,58 @@
                 elements.modalPhysValue.textContent = '3.0';
                 elements.playerModal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
-            });
+            };
 
-            // Sliders do modal
-            elements.modalPlayerTech.addEventListener('input', (e) => {
-                elements.modalTechValue.textContent = parseFloat(e.target.value).toFixed(1);
-            });
-            elements.modalPlayerPhys.addEventListener('input', (e) => {
-                elements.modalPhysValue.textContent = parseFloat(e.target.value).toFixed(1);
-            });
+            elements.btnCloseModal.onclick = closeModal;
+            elements.modalPlayerTech.oninput = (e) => elements.modalTechValue.textContent = parseFloat(e.target.value).toFixed(1);
+            elements.modalPlayerPhys.oninput = (e) => elements.modalPhysValue.textContent = parseFloat(e.target.value).toFixed(1);
 
-            // Fechar modal
-            elements.btnCloseModal.addEventListener('click', closeModal);
-            elements.playerModal.addEventListener('click', (e) => {
-                if (e.target === elements.playerModal) closeModal();
-            });
-
-            function closeModal() {
-                elements.playerModal.classList.add('hidden');
-                document.body.style.overflow = '';
-            }
-
-            // Formulário do jogador
-            elements.playerForm.addEventListener('submit', (e) => {
+            elements.playerForm.onsubmit = (e) => {
                 e.preventDefault();
-                const id = elements.modalPlayerId.value || `p${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
+                const id = elements.modalPlayerId.value || `p${Date.now()}${Math.random().toString(36).substr(2,9)}`;
                 const player = {
-                    id,
-                    name: elements.modalPlayerName.value.trim(),
+                    id, name: elements.modalPlayerName.value.trim(),
                     position: elements.modalPlayerPosition.value,
                     tech: parseFloat(elements.modalPlayerTech.value),
                     phys: parseFloat(elements.modalPlayerPhys.value)
                 };
-
-                if (!player.name) {
-                    showToast('❌ Nome é obrigatório!', 'error');
-                    return;
-                }
-
+                if (!player.name) return showToast('❌ Nome obrigatório!', 'error');
                 addPlayer(player);
-                elements.playerModal.classList.add('hidden');
-                document.body.style.overflow = '';
+                closeModal();
                 showToast('✅ Jogador salvo!', 'success');
-            });
+            };
 
-            // Deletar jogador
-            elements.btnDeleteFromModal.addEventListener('click', () => {
+            elements.btnDeleteFromModal.onclick = () => {
                 const id = elements.modalPlayerId.value;
                 if (id && players.has(id)) {
                     players.delete(id);
-                    savePlayers();
+                    saveState();
                     renderPlayers();
                     updateSummary();
-                    elements.playerModal.classList.add('hidden');
-                    document.body.style.overflow = '';
+                    closeModal();
                     showToast('🗑️ Jogador removido!', 'error');
                 }
-            });
+            };
+
+            // Tournament
+            elements.btnAddMatch.onclick = () => {
+                showToast('📝 Funcionalidade de torneio em desenvolvimento!', 'info');
+            };
+            elements.btnResetTournament.onclick = () => {
+                tournamentData = { matches: [], standings: {} };
+                saveState();
+                updateTournamentUI();
+                showToast('🗑️ Torneio zerado!', 'error');
+            };
         }
 
-        // Inicializar app
-        init();
+        function updateTournamentUI() {
+            if (players.size === 0) {
+                elements.tournamentContent.innerHTML = '<div class="text-center py-12 text-white/50"><div class="text-5xl mb-4">⚽</div><h3 class="font-display text-2xl uppercase italic tracking-tight mb-2">Sem jogadores</h3><p>Carregue o elenco primeiro</p></div>';
+            } else {
+                elements.tournamentContent.innerHTML = '<div class="text-center py-12 text-white/50"><div class="text-5xl mb-4">🎲</div><h3 class="font-display text-2xl uppercase italic tracking-tight mb-2">Pronto para sorteio</h3><p>Vá na aba Config → Sortear baba</p></div>';
+            }
+        }
     </script>
 </body>
 </html>
