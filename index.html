@@ -34,7 +34,7 @@
     </script>
     <style>
         :root { color-scheme: dark; }
-        * { margin: 0; padding: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
             width: 100%;
             overflow-x: hidden;
@@ -250,7 +250,7 @@
             </div>
         </section>
 
-        <!-- TELA 3: RESULTADOS + TORNEIO -->
+        <!-- TELA 3: RESULTADOS -->
         <section id="screenResults" class="screen">
             <div class="container-mobile space-y-5">
                 <!-- RESUMO -->
@@ -267,104 +267,103 @@
                     <div id="resultsGrid" class="space-y-4"></div>
                 </div>
 
-                <!-- TORNEIO -->
-                <div id="tournamentSection" class="mt-8 hidden">
-                    <h2 class="font-display text-2xl uppercase italic mb-4">🏆 Campeonato</h2>
-                    
-                    <div class="rounded-[28px] border border-white/10 bg-black/25 p-4 mb-4">
-                        <div class="mb-4 flex items-center justify-between">
-                            <h3 class="font-display text-lg uppercase italic">Mesa de Jogo</h3>
-                            <span id="gamesCounter" class="text-xs font-bold text-cyan-300">0 partidas</span>
-                        </div>
-                        
-                        <div class="flex gap-2 mb-4">
-                            <button id="btnAddMatch" class="flex-1 rounded-2xl bg-arena-neon px-4 py-3 text-xs font-bold text-black">+ Partida</button>
-                            <button id="btnResetTournament" class="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-xs font-bold text-white/70">Limpar</button>
-                        </div>
-                        
-                        <div id="matchTabs" class="flex gap-2 mb-4 overflow-x-auto mobile-scroll pb-2"></div>
-                        <div id="matchWorkspace"></div>
-                    </div>
-
-                    <!-- TABELA -->
-                    <div class="rounded-[28px] border border-white/10 bg-black/25 p-4 mb-4">
-                        <h3 class="font-display text-lg uppercase italic mb-4">Tabela</h3>
-                        <div class="overflow-x-auto mobile-scroll">
-                            <table class="w-full text-left text-xs">
-                                <thead class="text-white/40">
-                                    <tr>
-                                        <th class="pb-3 pr-3">Time</th>
-                                        <th class="pb-3 pr-3">Pts</th>
-                                        <th class="pb-3 pr-3">J</th>
-                                        <th class="pb-3 pr-3">V</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="standingsBody" class="text-white/80"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- ARTILHARIA -->
-                    <div class="rounded-[28px] border border-white/10 bg-black/25 p-4">
-                        <h3 class="font-display text-lg uppercase italic mb-4">🎯 Artilharia</h3>
-                        <div id="scorersList" class="space-y-2 text-sm text-white/75"></div>
-                    </div>
-                </div>
-
                 <!-- BOTÕES -->
                 <div class="grid grid-cols-2 gap-3">
-                    <button id="btnRedraw" class="rounded-2xl border border-white/10 px-4 py-3 text-xs font-bold uppercase text-white/70 hover:border-white">🔄 Novo Sorteio</button>
-                    <button id="btnCopyAll" class="rounded-2xl bg-white px-4 py-3 text-xs font-bold uppercase text-black hover:bg-arena-neon">📋 Copiar</button>
+                    <button id="btnRedraw" class="rounded-2xl border border-white/10 px-4 py-3 text-xs font-bold uppercase text-white/70 hover:border-white">🔄 Novo</button>
+                    <button id="btnOpenTournament" class="rounded-2xl bg-arena-neon px-4 py-3 text-xs font-bold uppercase text-black hover:bg-white">🏆 Torneio</button>
                 </div>
             </div>
         </section>
 
-        <!-- TELA 4: EDITAR JOGADOR -->
-        <div id="playerModal" class="fixed inset-0 z-40 hidden flex items-end justify-center bg-black/75 p-3 sm:items-center">
-            <div class="w-full max-w-lg rounded-[32px] border border-white/10 bg-arena-panel p-5 shadow-arena">
-                <div class="mb-5 flex items-start justify-between">
-                    <div>
-                        <p class="text-xs font-bold uppercase text-white/40 mb-1">Editar Jogador</p>
-                        <h3 class="font-display text-2xl uppercase italic text-white" id="modalTitle">Jogador</h3>
-                    </div>
-                    <button id="btnCloseModal" class="rounded-full border border-white/10 px-3 py-2 text-xs font-bold uppercase text-white/70 hover:border-white">✕</button>
-                </div>
-                
-                <form id="playerForm" class="space-y-4">
-                    <input type="hidden" id="modalPlayerId">
+        <!-- TELA 4: TORNEIO -->
+        <section id="screenTournament" class="screen">
+            <div class="container-mobile space-y-5">
+                <div class="rounded-[28px] border border-white/10 bg-arena-panel p-4 shadow-arena">
+                    <h2 class="font-display text-2xl uppercase italic mb-4">🏆 Campeonato</h2>
                     
-                    <label>
-                        <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Nome</span>
-                        <input id="modalPlayerName" type="text" class="w-full rounded-2xl border border-white/10 bg-black/35 p-3 text-white outline-none focus:border-cyan-400/50">
-                    </label>
-
-                    <label>
-                        <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Posição</span>
-                        <select id="modalPlayerPosition" class="w-full rounded-2xl border border-white/10 bg-black/35 p-3 text-white outline-none focus:border-cyan-400/50"></select>
-                    </label>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <label>
-                            <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Técnica</span>
-                            <input id="modalPlayerTech" type="range" min="0.5" max="5" step="0.5" class="w-full accent-lime-300">
-                            <span id="modalTechValue" class="text-xs text-white/75 block mt-1">3.0</span>
-                        </label>
-
-                        <label>
-                            <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Físico</span>
-                            <input id="modalPlayerPhys" type="range" min="0.5" max="5" step="0.5" class="w-full accent-cyan-300">
-                            <span id="modalPhysValue" class="text-xs text-white/75 block mt-1">3.0</span>
-                        </label>
+                    <div class="flex gap-3 mb-4">
+                        <button id="btnAddMatch" class="flex-1 rounded-2xl bg-arena-neon px-4 py-3 text-xs font-bold uppercase text-black hover:bg-white">+ Partida</button>
+                        <button id="btnResetTournament" class="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-xs font-bold uppercase text-white/70 hover:border-white">Limpar</button>
                     </div>
+                    
+                    <div id="matchTabs" class="flex gap-2 mb-4 overflow-x-auto mobile-scroll pb-2"></div>
+                    <div id="matchWorkspace" class="mb-4"></div>
+                </div>
 
-                    <div class="grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
-                        <button id="btnDeleteFromModal" type="button" class="rounded-2xl border border-red-400/30 px-4 py-3 text-xs font-bold uppercase text-red-300 hover:bg-red-500/20">Deletar</button>
-                        <button type="submit" class="rounded-2xl bg-arena-neon px-4 py-3 text-xs font-bold uppercase text-black hover:bg-white">Salvar</button>
+                <!-- TABELA -->
+                <div class="rounded-[28px] border border-white/10 bg-arena-panel p-4 shadow-arena">
+                    <h3 class="font-display text-lg uppercase italic mb-4">📊 Tabela</h3>
+                    <div class="overflow-x-auto mobile-scroll">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-white/40 border-b border-white/10">
+                                <tr>
+                                    <th class="pb-3 pr-3">Time</th>
+                                    <th class="pb-3 pr-3">Pts</th>
+                                    <th class="pb-3 pr-3">J</th>
+                                    <th class="pb-3 pr-3">V</th>
+                                </tr>
+                            </thead>
+                            <tbody id="standingsBody" class="text-white/80"></tbody>
+                        </table>
                     </div>
-                </form>
+                </div>
+
+                <!-- ARTILHARIA -->
+                <div class="rounded-[28px] border border-white/10 bg-arena-panel p-4 shadow-arena">
+                    <h3 class="font-display text-lg uppercase italic mb-4">🎯 Artilharia</h3>
+                    <div id="scorersList" class="space-y-2 text-sm text-white/75"></div>
+                </div>
+
+                <button id="btnBackToResults" class="w-full rounded-2xl border border-white/10 px-4 py-3 text-xs font-bold uppercase text-white/70 hover:border-white">← Voltar</button>
             </div>
-        </div>
+        </section>
     </main>
+
+    <!-- MODAL EDITAR JOGADOR (FIXADO NO TOPO) -->
+    <div id="playerModal" class="fixed inset-0 z-40 hidden flex items-center justify-center bg-black/75 p-3 overflow-y-auto">
+        <div class="w-full max-w-lg rounded-[32px] border border-white/10 bg-arena-panel p-5 shadow-arena my-8">
+            <div class="mb-5 flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-bold uppercase text-white/40 mb-1">Editar Jogador</p>
+                    <h3 class="font-display text-2xl uppercase italic text-white" id="modalTitle">Jogador</h3>
+                </div>
+                <button id="btnCloseModal" class="rounded-full border border-white/10 px-3 py-2 text-xs font-bold uppercase text-white/70 hover:border-white flex-shrink-0">✕</button>
+            </div>
+            
+            <form id="playerForm" class="space-y-4 max-h-96 overflow-y-auto pr-3">
+                <input type="hidden" id="modalPlayerId">
+                
+                <label>
+                    <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Nome</span>
+                    <input id="modalPlayerName" type="text" class="w-full rounded-2xl border border-white/10 bg-black/35 p-3 text-white outline-none focus:border-cyan-400/50">
+                </label>
+
+                <label>
+                    <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Posição</span>
+                    <select id="modalPlayerPosition" class="w-full rounded-2xl border border-white/10 bg-black/35 p-3 text-white outline-none focus:border-cyan-400/50"></select>
+                </label>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <label>
+                        <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Técnica</span>
+                        <input id="modalPlayerTech" type="range" min="0.5" max="5" step="0.5" class="w-full accent-lime-300">
+                        <span id="modalTechValue" class="text-xs text-white/75 block mt-1 text-center">3.0</span>
+                    </label>
+
+                    <label>
+                        <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Físico</span>
+                        <input id="modalPlayerPhys" type="range" min="0.5" max="5" step="0.5" class="w-full accent-cyan-300">
+                        <span id="modalPhysValue" class="text-xs text-white/75 block mt-1 text-center">3.0</span>
+                    </label>
+                </div>
+
+                <div class="pt-6 border-t border-white/10 flex gap-3">
+                    <button id="btnDeleteFromModal" type="button" class="flex-1 rounded-2xl border border-red-400/30 px-4 py-3 text-xs font-bold uppercase text-red-300 hover:bg-red-500/20">Deletar</button>
+                    <button type="submit" class="flex-1 rounded-2xl bg-arena-neon px-4 py-3 text-xs font-bold uppercase text-black hover:bg-white">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- NAVEGAÇÃO MOBILE -->
     <nav class="navbar-mobile">
@@ -411,7 +410,8 @@
             screens: { 
                 roster: document.getElementById('screenRoster'),
                 sort: document.getElementById('screenSort'),
-                results: document.getElementById('screenResults')
+                results: document.getElementById('screenResults'),
+                tournament: document.getElementById('screenTournament')
             },
             // Roster
             bulkList: document.getElementById('bulkList'),
@@ -432,10 +432,10 @@
             resultsSummary: document.getElementById('resultsSummary'),
             resultsMeta: document.getElementById('resultsMeta'),
             resultsGrid: document.getElementById('resultsGrid'),
-            tournamentSection: document.getElementById('tournamentSection'),
             btnRedraw: document.getElementById('btnRedraw'),
-            btnCopyAll: document.getElementById('btnCopyAll'),
+            btnOpenTournament: document.getElementById('btnOpenTournament'),
             // Torneio
+            tournamentSection: document.getElementById('screenTournament'),
             matchTabs: document.getElementById('matchTabs'),
             matchWorkspace: document.getElementById('matchWorkspace'),
             gamesCounter: document.getElementById('gamesCounter'),
@@ -443,6 +443,7 @@
             scorersList: document.getElementById('scorersList'),
             btnAddMatch: document.getElementById('btnAddMatch'),
             btnResetTournament: document.getElementById('btnResetTournament'),
+            btnBackToResults: document.getElementById('btnBackToResults'),
             // Modal
             playerModal: document.getElementById('playerModal'),
             btnCloseModal: document.getElementById('btnCloseModal'),
@@ -503,11 +504,18 @@
             Object.values(elements.screens).forEach(s => s.classList.remove('active'));
             elements.navTabs.forEach(t => t.classList.remove('active'));
             
-            const screenMap = { screenRoster: 'roster', screenSort: 'sort', screenResults: 'results' };
+            const screenMap = { 
+                screenRoster: 'roster', 
+                screenSort: 'sort', 
+                screenResults: 'results',
+                screenTournament: 'tournament'
+            };
             const key = screenMap[screenId];
             if (elements.screens[key]) elements.screens[key].classList.add('active');
             
-            document.querySelector(`[data-screen="${screenId}"]`)?.classList.add('active');
+            if (screenId !== 'screenTournament') {
+                document.querySelector(`[data-screen="${screenId}"]`)?.classList.add('active');
+            }
         }
 
         function createPlayer(name, overrides = {}) {
@@ -562,7 +570,7 @@
                             <p class="font-semibold text-white truncate">${player.name}</p>
                             <p class="text-xs text-white/60">${player.position} • OVR ${getPlayerScore(player).toFixed(1)}</p>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-shrink-0">
                             <button type="button" data-action="edit" data-player-id="${player.id}" class="rounded-full border border-white/10 px-3 py-2 text-xs font-bold text-white/70 hover:border-white">✏️</button>
                             <button type="button" data-action="remove" data-player-id="${player.id}" class="rounded-full border border-red-400/30 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/20">🗑️</button>
                         </div>
@@ -786,7 +794,6 @@
                 elements.resultsGrid.appendChild(card);
             });
 
-            elements.tournamentSection.classList.remove('hidden');
             switchScreen('screenResults');
             saveState();
         }
@@ -861,6 +868,8 @@
         elements.btnAddPlayer.addEventListener('click', () => openPlayerModal());
         elements.btnDraw.addEventListener('click', handleDraw);
         elements.btnRedraw.addEventListener('click', () => switchScreen('screenSort'));
+        elements.btnOpenTournament.addEventListener('click', () => switchScreen('screenTournament'));
+        elements.btnBackToResults.addEventListener('click', () => switchScreen('screenResults'));
 
         elements.playerForm.addEventListener('submit', savePlayerFromModal);
         elements.btnCloseModal.addEventListener('click', closePlayerModal);
