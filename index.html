@@ -206,7 +206,7 @@
         </section>
     </div>
 
-    <!-- MODAL JOGADOR - CORRIGIDO -->
+    <!-- MODAL JOGADOR -->
     <div id="playerModal" class="fixed inset-0 z-[9999] hidden flex items-end justify-center bg-black/80 modal-overlay px-3">
         <div class="w-full max-w-md rounded-[32px] border-2 border-white/15 bg-gradient-to-b from-arena-panel/95 to-arena-panel p-6 shadow-2xl shadow-arena max-h-[90vh] overflow-y-auto">
             <div class="mb-6 flex items-start justify-between sticky top-0 bg-arena-panel/95 backdrop-blur-sm pt-6 pb-4 -mx-6 px-6 border-b border-white/5">
@@ -273,11 +273,13 @@
     </div>
 
     <script>
-        // === SISTEMA COMPLETO V2 ===
-        const STORAGE_KEY = 'fut-desastre-v2';
+        // === SISTEMA COMPLETO V3 - SORTEIO CORRIGIDO + SALVAMENTO POR NOME ===
+        const STORAGE_KEY = 'fut-desastre-v3';
+        const PLAYER_PROFILES_KEY = 'fut-desastre-player-profiles';
         let players = new Map();
         let currentTeams = [];
         let tournamentData = { matches: [], standings: {} };
+        let playerProfiles = new Map(); // Novo: salva skills por nome
 
         // Elementos DOM
         const elements = {
@@ -322,6 +324,7 @@
         function initApp() {
             setupNavigation();
             loadState();
+            loadPlayerProfiles();
             renderPlayers();
             updateSummary();
             setupEventListeners();
@@ -367,22 +370,48 @@
                 .filter(line => line && !/^\s*[\d\.\-\$\$\$\$\*]+\s*$/.test(line))
                 .map(line => line.replace(/^\s*[\d\.\-\$\$\$\$\*\s]+/, '').trim())
                 .filter((name, i, arr) => name.length > 1 && arr.indexOf(name) === i)
-                .map(name => ({
-                    id: `p${Date.now()}${Math.floor(Math.random()*1000)}`,
-                    name: name.slice(0, 25),
-                    position: 'coringa',
-                    tech: 3 + (Math.random() - 0.5),
-                    phys: 3 + (Math.random() - 0.5)
-                }));
+                .map(name => {
+                    // Carrega perfil salvo se existir
+                    const savedProfile = playerProfiles.get(name.toLowerCase());
+                    return {
+                        id: `p${Date.now()}${Math.floor(Math.random()*1000)}`,
+                        name: name.slice(0, 25),
+                        position: savedProfile?.position || 'coringa',
+                        tech: savedProfile?.tech || 3 + (Math.random() - 0.5),
+                        phys: savedProfile?.phys || 3 + (Math.random() - 0.5)
+                    };
+                });
         }
 
         function getOVR(player) {
             return Math.round(((player.tech || 3) + (player.phys || 3)) / 2 * 10) / 10;
         }
 
+        // SISTEMA DE PERFIS POR NOME
+        function savePlayerProfile(player) {
+            playerProfiles.set(player.name.toLowerCase(), {
+                position: player.position,
+                tech: player.tech,
+                phys: player.phys,
+                ovr: getOVR(player)
+            });
+            localStorage.setItem(PLAYER_PROFILES_KEY, JSON.stringify(Array.from(playerProfiles.entries())));
+            showToast(`💾 Perfil de ${player.name} salvo automaticamente!`, 'success');
+        }
+
+        function loadPlayerProfiles() {
+            try {
+                const data = JSON.parse(localStorage.getItem(PLAYER_PROFILES_KEY) || '{}');
+                playerProfiles = new Map(data);
+            } catch (e) {
+                playerProfiles = new Map();
+            }
+        }
+
         // Core functions
         function addPlayer(playerData) {
             players.set(playerData.id, playerData);
+            savePlayerProfile(playerData); // Salva perfil automaticamente
             saveState();
             renderPlayers();
             updateSummary();
@@ -445,6 +474,119 @@
                 : `✅ ${count} jogador${count !== 1 ? 'es' : ''} prontos para o sorteio`;
         }
 
+        // SORTEIO INTELIGENTE CORRIGIDO
+        function generateTeams() {
+            if (players.size < 4) {
+                showToast('❌ Precisa de pelo menos 4 jogadores!', 'error');
+                return false;
+            }
+            
+            const teamSize = parseInt(elements.teamSize.value) || 5;
+            if (players.size < teamSize * 2) {
+                showToast(`❌ Precisa de pelo menos ${teamSize * 2} jogadores!`, 'error');
+                return false;
+            }
+
+            let playerList = Array.from(players.values());
+            
+            // Ordena por OVR decrescente
+            playerList.sort((a, b) => getOVR(b) - getOVR(a));
+            
+            // REGRAS INTELIGENTES
+            const teamA = [];
+            const teamB = [];
+            
+            // Regra 1: Separar os dois melhores (se habilitado)
+            if (elements.ruleTopTwo.checked && playerList.length >= 2) {
+                teamA.push(playerList[0]);
+                teamB.push(playerList[1]);
+                playerList.splice(0, 2);
+            }
+            
+            // Regra 2: Espalhar goleiros (se habilitado)
+            if (elements.ruleGoalkeepers.checked) {
+                const goalkeepers = playerList.filter(p => p.position === 'goleiro');
+                goalkeepers.forEach((gk, i) => {
+                    if (i % 2 === 0) teamA.push(gk);
+                    else teamB.push(gk);
+                    const index = playerList.findIndex(p => p.id === gk.id);
+                    playerList.splice(index, 1);
+                });
+            }
+            
+            // Distribuição equilibrada dos restantes (serpente)
+            let index = 0;
+            while (teamA.length < teamSize || teamB.length < teamSize) {
+                if (index < playerList.length) {
+                    if (teamA.length < teamSize) {
+                        teamA.push(playerList[index]);
+                    } else {
+                        teamB.push(playerList[index]);
+                    }
+                    index++;
+                }
+            }
+            
+            // Ordena times por OVR (melhor primeiro)
+            currentTeams = [
+                teamA.sort((a, b) => getOVR(b) - getOVR(a)),
+                teamB.sort((a, b) => getOVR(b) - getOVR(a))
+            ];
+            
+            renderTeams();
+            elements.resultsSection.classList.remove('hidden');
+            elements.tournamentSection.style.display = 'none';
+            showToast('🎲 Times sorteados com BALANÇO PERFEITO!', 'success');
+            return true;
+        }
+
+        function renderTeams() {
+            const summary = elements.resultsSummary;
+            const grid = elements.resultsGrid;
+            
+            const teamAOVR = currentTeams[0].reduce((sum, p) => sum + getOVR(p), 0);
+            const teamBOVR = currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0);
+            const balance = Math.abs(teamAOVR - teamBOVR).toFixed(1);
+            
+            summary.innerHTML = `
+                <div class="text-center">
+                    <div class="text-4xl font-display uppercase tracking-tight text-arena-neon mb-2">Time A</div>
+                    <div class="text-2xl font-bold text-white">${teamAOVR.toFixed(1)}</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-display uppercase tracking-tight text-cyan-400 mb-2">Time B</div>
+                    <div class="text-2xl font-bold text-white">${teamBOVR.toFixed(1)}</div>
+                </div>
+            `;
+            
+            grid.innerHTML = currentTeams.map((team, teamIndex) => {
+                const teamOVR = team.reduce((sum, p) => sum + getOVR(p), 0).toFixed(1);
+                return `
+                    <div class="rounded-3xl border-2 ${teamIndex === 0 ? 'border-arena-neon/50 bg-arena-neon/5' : 'border-cyan-400/50 bg-cyan-400/5'} p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-display text-2xl uppercase italic tracking-tight ${teamIndex === 0 ? 'text-arena-neon' : 'text-cyan-400'}">
+                                ${teamIndex === 0 ? '⚡ TIME A' : '🔥 TIME B'}
+                            </h3>
+                            <div class="text-xl font-bold text-white">${teamOVR}</div>
+                        </div>
+                        <div class="space-y-2">
+                            ${team.map(player => `
+                                <div class="flex items-center justify-between p-3 rounded-2xl bg-black/30 hover:bg-black/50 transition-all">
+                                    <span class="font-semibold text-white">${player.name}</span>
+                                    <span class="text-sm text-white/70">${getOVR(player).toFixed(1)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('') + `
+                <div class="text-center mt-6 p-4 rounded-3xl bg-gradient-to-r from-arena-neon/10 to-cyan-400/10 border border-white/10">
+                    <p class="text-sm text-white/70 mb-1">⚖️ BALANÇO DOS TIMES</p>
+                    <p class="text-xl font-bold text-arena-neon">DIFERENÇA: ${balance} OVR</p>
+                </div>
+            `;
+        }
+
         // State management
         function saveState() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -488,75 +630,24 @@
             document.body.style.overflow = '';
         }
 
-        // Tournament functions
-        function generateTeams() {
-            if (players.size < 4) {
-                showToast('❌ Precisa de pelo menos 4 jogadores!', 'error');
-                return false;
-            }
-            
-            const teamSize = parseInt(elements.teamSize.value) || 5;
-            if (players.size < teamSize * 2) {
-                showToast(`❌ Precisa de pelo menos ${teamSize * 2} jogadores!`, 'error');
-                return false;
-            }
-            
-            const playerList = Array.from(players.values()).sort(() => Math.random() - 0.5);
-            currentTeams = [
-                playerList.slice(0, teamSize).sort((a, b) => getOVR(b) - getOVR(a)),
-                playerList.slice(teamSize, teamSize * 2).sort((a, b) => getOVR(b) - getOVR(a))
-            ];
-            
-            renderTeams();
-            elements.resultsSection.classList.remove('hidden');
-            elements.tournamentSection.style.display = 'none';
-            showToast('🎲 Times sorteados com sucesso!', 'success');
-            return true;
-        }
-
-        function renderTeams() {
-            const summary = elements.resultsSummary;
-            const grid = elements.resultsGrid;
-            
-            summary.innerHTML = `
-                <div class="text-center">
-                    <div class="text-4xl font-display uppercase tracking-tight text-arena-neon mb-2">Time A</div>
-                    <div class="text-2xl font-bold text-white">${currentTeams[0].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)}</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-4xl font-display uppercase tracking-tight text-cyan-400 mb-2">Time B</div>
-                    <div class="text-2xl font-bold text-white">${currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)}</div>
-                </div>
-            `;
-            
-            grid.innerHTML = currentTeams.map((team, teamIndex) => `
-                <div class="rounded-3xl border-2 ${teamIndex === 0 ? 'border-arena-neon/50 bg-arena-neon/5' : 'border-cyan-400/50 bg-cyan-400/5'} p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-display text-2xl uppercase italic tracking-tight ${teamIndex === 0 ? 'text-arena-neon' : 'text-cyan-400'}">
-                            ${teamIndex === 0 ? '⚡ TIME A' : '🔥 TIME B'}
-                        </h3>
-                        <div class="text-xl font-bold text-white">${team.reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)}</div>
-                    </div>
-                    <div class="space-y-2">
-                        ${team.map(player => `
-                            <div class="flex items-center justify-between p-3 rounded-2xl bg-black/30 hover:bg-black/50 transition-all">
-                                <span class="font-semibold text-white">${player.name}</span>
-                                <span class="text-sm text-white/70">${getOVR(player).toFixed(1)}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
         function copyTeams() {
-            const text = currentTeams.map((team, i) => 
-                `=== TIME ${String.fromCharCode(65 + i)} (OVR: ${team.reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)}) ===\n` +
-                team.map(p => `• ${p.name} (${getOVR(p).toFixed(1)})`).join('\n')
-            ).join('\n\n');
+            const teamAOVR = currentTeams[0].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1);
+            const teamBOVR = currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1);
+            const balance = Math.abs(teamAOVR - teamBOVR).toFixed(1);
+            
+            const text = `⚽ ESCALAÇÕES FUT-DESASTRE ⚽
+
+🏆 TIME A (OVR Total: ${teamAOVR})
+${currentTeams[0].map(p => `• ${p.name} (${getOVR(p).toFixed(1)})`).join('\n')}
+
+🔥 TIME B (OVR Total: ${teamBOVR})
+${currentTeams[1].map(p => `• ${p.name} (${getOVR(p).toFixed(1)})`).join('\n')}
+
+⚖️ BALANÇO: ${balance} OVR de diferença
+🎲 Sorteado pelo FUT-DESASTRE Matchmaker`;
             
             navigator.clipboard.writeText(text).then(() => {
-                showToast('📋 Times copiados para área de transferência!', 'success');
+                showToast('📋 Times copiados com BALANÇO!', 'success');
             });
         }
 
@@ -593,8 +684,6 @@
 
             // Sortear
             elements.btnDraw.onclick = () => generateTeams();
-
-            // Redraw
             elements.btnRedraw.onclick = () => generateTeams();
 
             // Copy
@@ -603,8 +692,8 @@
             // Modal
             elements.btnAddPlayer.onclick = () => {
                 elements.modalTitle.textContent = 'Novo jogador';
-                elements.modalPlayerName.value = '';
                 elements.modalPlayerId.value = '';
+                elements.modalPlayerName.value = '';
                 elements.modalPlayerPosition.value = 'coringa';
                 elements.modalPlayerTech.value = 3;
                 elements.modalPlayerPhys.value = 3;
@@ -622,7 +711,8 @@
                 e.preventDefault();
                 const id = elements.modalPlayerId.value || `p${Date.now()}${Math.random().toString(36).substr(2,9)}`;
                 const player = {
-                    id, name: elements.modalPlayerName.value.trim(),
+                    id, 
+                    name: elements.modalPlayerName.value.trim(),
                     position: elements.modalPlayerPosition.value,
                     tech: parseFloat(elements.modalPlayerTech.value),
                     phys: parseFloat(elements.modalPlayerPhys.value)
@@ -630,18 +720,19 @@
                 if (!player.name) return showToast('❌ Nome obrigatório!', 'error');
                 addPlayer(player);
                 closeModal();
-                showToast('✅ Jogador salvo!', 'success');
+                showToast('✅ Jogador salvo com perfil permanente!', 'success');
             };
 
             elements.btnDeleteFromModal.onclick = () => {
                 const id = elements.modalPlayerId.value;
                 if (id && players.has(id)) {
+                    const player = players.get(id);
                     players.delete(id);
                     saveState();
                     renderPlayers();
                     updateSummary();
                     closeModal();
-                    showToast('🗑️ Jogador removido!', 'error');
+                    showToast(`🗑️ ${player.name} removido!`, 'error');
                 }
             };
 
@@ -664,6 +755,9 @@
                 elements.tournamentContent.innerHTML = '<div class="text-center py-12 text-white/50"><div class="text-5xl mb-4">🎲</div><h3 class="font-display text-2xl uppercase italic tracking-tight mb-2">Pronto para sorteio</h3><p>Vá na aba Config → Sortear baba</p></div>';
             }
         }
+
+        // Expor funções globais para os botões
+        window.editPlayer = editPlayer;
     </script>
 </body>
 </html>
