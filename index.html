@@ -1,3 +1,992 @@
+
+
+corrija a parte do sorteio por favor e tbm ajeite caso tenha algum bug na parte torneio <!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUT-DESASTRE | Matchmaker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Oswald', 'sans-serif']
+                    },
+                    colors: {
+                        arena: {
+                            black: '#06070a',
+                            panel: '#12151c',
+                            panelSoft: '#191d26',
+                            neon: '#dfff00',
+                            cyan: '#38bdf8',
+                            coral: '#fb7185',
+                            gold: '#fbbf24'
+                        }
+                    },
+                    boxShadow: {
+                        arena: '0 28px 80px rgba(0, 0, 0, 0.38)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { color-scheme: dark; }
+        * { max-width: 480px; margin-left: auto; margin-right: auto; }
+        body {
+            background: radial-gradient(circle at top, rgba(56, 189, 248, 0.14), transparent 28%),
+                        radial-gradient(circle at bottom right, rgba(223, 255, 0, 0.1), transparent 18%),
+                        linear-gradient(180deg, #07090c 0%, #050607 100%);
+            color: #f8fafc; padding: 1rem; min-height: 100vh;
+        }
+        .container { max-width: 480px; margin: 0 auto; padding: 0 1rem; }
+        .panel-grid {
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 26px 26px;
+        }
+        .star { 
+            font-size: 1.35rem; cursor: pointer; position: relative; display: inline-block; 
+            color: #3d4553; transition: transform 0.12s ease; user-select: none; 
+            width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
+        }
+        .star:hover { transform: scale(1.14); }
+        .star-full { color: #dfff00; text-shadow: 0 0 10px rgba(223,255,0,0.42); }
+        .star-half::before {
+            content: '\2605'; position: absolute; inset: 0 auto 0 0; width: 50%; overflow: hidden;
+            color: #dfff00; text-shadow: 0 0 10px rgba(223,255,0,0.42);
+        }
+        .nav-bottom {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px;
+            background: rgba(18,21,28,0.95); backdrop-filter: blur(20px); padding: 1rem 0;
+            display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,0.1); z-index: 100;
+        }
+        .nav-btn {
+            background: none; border: none; color: rgba(255,255,255,0.6); font-family: 'Oswald', sans-serif;
+            font-size: 0.75rem; font-weight: 700; padding: 0.75rem; cursor: pointer; transition: all 0.3s ease;
+            display: flex; flex-direction: column; align-items: center; gap: 0.25rem; text-transform: uppercase;
+            letter-spacing: 0.05em; border-radius: 12px; min-width: 70px;
+        }
+        .nav-btn.active { color: #dfff00; background: rgba(223,255,0,0.1); text-shadow: 0 0 10px rgba(223,255,0,0.3); }
+        .nav-btn:hover { color: white; transform: translateY(-2px); }
+        .section { display: none; animation: fadeSlide 0.5s ease-out; min-height: calc(100vh - 140px); padding-bottom: 5rem; }
+        .section.active { display: block; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        input, textarea, select { width: 100% !important; max-width: 100% !important; }
+        button { width: 100%; max-width: 100%; }
+        .modal-overlay { backdrop-filter: blur(8px); }
+        @media (min-width: 481px) { .container { padding: 0 2rem; } }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- NAVEGAÇÃO -->
+    <nav class="nav-bottom">
+        <button class="nav-btn active" data-section="convocar"><span>👥</span>Jogadores</button>
+        <button class="nav-btn" data-section="config"><span>⚙️</span>Config</button>
+        <button class="nav-btn" data-section="elenco"><span>📋</span>Elenco</button>
+        <button class="nav-btn" data-section="tournament"><span>🏆</span>Torneio</button>
+    </nav>
+
+    <div class="container">
+        <!-- TOAST -->
+        <div id="toast" class="fixed right-4 top-4 z-50 rounded-2xl px-4 py-3 text-sm shadow-arena transition-all duration-300 opacity-0 pointer-events-none"></div>
+
+        <!-- CONVOCAR JOGADORES -->
+        <section id="convocar" class="section active">
+            <div class="mb-6 rounded-[32px] border border-white/10 bg-arena-panel/80 px-4 py-6 shadow-arena">
+                <div class="flex flex-col gap-5">
+                    <div>
+                        <p class="mb-2 text-[11px] font-semibold uppercase tracking-[0.34em] text-white/40">Organizador de pelada</p>
+                        <h1 class="font-display text-4xl uppercase italic tracking-tight">FUT-<span class="text-arena-neon">DESASTRE</span></h1>
+                    </div>
+                    <div class="panel-grid rounded-[28px] border border-white/10 bg-arena-panel p-4">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h2 class="font-display text-2xl uppercase italic tracking-tight">Convocar jogadores</h2>
+                            <span class="rounded-full border border-arena-neon/30 bg-arena-neon/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-arena-neon">Importador</span>
+                        </div>
+                        <p class="mb-4 text-sm text-white/60">Cole a lista do grupo. Remove numeração, traços e nomes repetidos automaticamente.</p>
+                        <textarea id="bulkList" rows="6" class="w-full rounded-3xl border border-white/10 bg-black/40 p-4 text-sm text-white outline-none transition placeholder:text-white/20 focus:border-arena-neon/45 focus:ring-2 focus:ring-arena-neon/20" placeholder="1. Kaio&#10;2) Pedro&#10;- Gustavo&#10;Joao"></textarea>
+                        <div class="mt-4 flex flex-col gap-3">
+                            <button id="btnImport" class="rounded-2xl bg-arena-neon px-5 py-4 font-display text-lg uppercase italic tracking-wide text-black transition hover:bg-white shadow-lg hover:shadow-arena">Lançar no sistema</button>
+                            <button id="btnDemo" class="rounded-2xl border border-white/10 px-5 py-4 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white hover:bg-white/5">Carregar demo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONFIG -->
+        <section id="config" class="section">
+            <div class="rounded-[28px] border border-cyan-400/20 bg-arena-panelSoft p-4 shadow-arena">
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="font-display text-2xl uppercase italic tracking-tight">Configuração</h2>
+                    <span class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300">Matchmaking</span>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <label class="block">
+                        <span class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Jogadores por time</span>
+                        <input type="number" id="teamSize" min="2" max="11" value="5" class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-2xl font-display text-arena-neon outline-none transition focus:border-cyan-300/50 focus:ring-2 focus:ring-cyan-400/20">
+                    </label>
+                    <div class="rounded-2xl border border-white/10 bg-black/35 p-4">
+                        <span class="block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Status</span>
+                        <p id="summaryText" class="mt-2 text-sm text-white/75">Nenhum jogador carregado.</p>
+                    </div>
+                </div>
+                <div class="mt-6 grid gap-3">
+                    <label class="flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
+                        <span>Separar os dois melhores</span>
+                        <input id="ruleTopTwo" type="checkbox" class="h-5 w-5 accent-lime-300" checked>
+                    </label>
+                    <label class="flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
+                        <span>Espalhar goleiros entre os times</span>
+                        <input id="ruleGoalkeepers" type="checkbox" class="h-5 w-5 accent-lime-300" checked>
+                    </label>
+                </div>
+                <button id="btnDraw" class="mt-8 w-full rounded-2xl bg-cyan-500 py-4 font-display text-lg uppercase tracking-[0.22em] text-white transition hover:bg-cyan-400 shadow-lg hover:shadow-arena">🎲 Sortear baba</button>
+            </div>
+        </section>
+
+        <!-- ELENCO -->
+        <section id="elenco" class="section">
+            <div class="rounded-[32px] border border-white/10 bg-arena-panel p-4 shadow-arena">
+                <div class="mb-6 flex flex-col gap-4 border-b border-white/5 pb-5">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Scouting report</p>
+                        <h2 class="font-display text-3xl uppercase italic tracking-tight text-white">Elenco atual</h2>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="rounded-full border border-arena-neon/30 bg-arena-neon/10 px-4 py-2 font-display text-2xl text-arena-neon" id="counter">0</span>
+                        <button id="btnAddPlayer" class="rounded-full border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white hover:bg-white/5">+ Adicionar jogador</button>
+                    </div>
+                </div>
+                <div id="emptyRoster" class="rounded-3xl border border-dashed border-white/10 bg-black/20 px-6 py-12 text-center text-white/45">
+                    <div class="mb-4">👥</div>
+                    <p>Importe uma lista ou carregue a demo para começar.</p>
+                </div>
+                <div id="listContainer" class="space-y-3 max-h-[60vh] overflow-y-auto"></div>
+            </div>
+        </section>
+
+        <!-- TORNEIO COMPLETO -->
+        <section id="tournament" class="section">
+            <div id="resultsSection" class="hidden">
+                <div class="mb-6 flex flex-col gap-4">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Saída pronta para compartilhar</p>
+                        <h2 class="font-display text-4xl uppercase italic tracking-tight text-white">Escalações</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button id="btnRedraw" class="rounded-full border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white hover:bg-white/5 flex-1">Sortear de novo</button>
+                        <button id="btnCopyAll" class="rounded-full bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-black transition hover:bg-arena-neon flex-1">📋 Copiar</button>
+                    </div>
+                </div>
+                <div id="resultsSummary" class="grid grid-cols-2 gap-4 mb-6"></div>
+                <div id="resultsGrid" class="space-y-4"></div>
+            </div>
+
+            <div id="tournamentSection">
+                <div class="mb-6 flex flex-col gap-3">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Gestão do dia</p>
+                        <h2 class="font-display text-4xl uppercase italic tracking-tight text-white">Campeonato da resenha</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button id="btnAddMatch" class="rounded-full bg-arena-neon px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-black transition hover:bg-white shadow-lg flex-1">+ Nova partida</button>
+                        <button id="btnResetTournament" class="rounded-full border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.24em] text-white/70 transition hover:border-white/25 hover:text-white flex-1">Zerar tudo</button>
+                    </div>
+                </div>
+                <div id="tournamentContent" class="text-center py-12 text-white/50">
+                    <div class="mb-4">⚽</div>
+                    <h3 class="font-display text-2xl uppercase italic tracking-tight mb-2">Sem partidas</h3>
+                    <p>Adicione a primeira partida ou carregue jogadores</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL JOGADOR -->
+    <div id="playerModal" class="fixed inset-0 z-[9999] hidden flex items-end justify-center bg-black/80 modal-overlay px-3">
+        <div class="w-full max-w-md rounded-[32px] border-2 border-white/15 bg-gradient-to-b from-arena-panel/95 to-arena-panel p-6 shadow-2xl shadow-arena max-h-[90vh] overflow-y-auto">
+            <div class="mb-6 flex items-start justify-between sticky top-0 bg-arena-panel/95 backdrop-blur-sm pt-6 pb-4 -mx-6 px-6 border-b border-white/5">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">Edição elegante</p>
+                    <h3 class="font-display text-3xl uppercase italic tracking-tight text-white" id="modalTitle">Novo jogador</h3>
+                </div>
+                <button id="btnCloseModal" class="rounded-full border border-white/20 px-3 py-2 text-lg font-bold text-white/70 hover:border-white/40 hover:text-white transition-all">×</button>
+            </div>
+            
+            <form id="playerForm" class="space-y-6">
+                <input type="hidden" id="modalPlayerId">
+                
+                <div>
+                    <label for="modalPlayerName" class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Nome completo</label>
+                    <input id="modalPlayerName" type="text" required 
+                           class="w-full rounded-2xl border border-white/15 bg-black/30 p-4 text-lg font-semibold text-white outline-none transition-all focus:border-arena-neon/50 focus:ring-4 focus:ring-arena-neon/20 focus:bg-black/40 placeholder:text-white/30" 
+                           placeholder="Digite o nome do jogador">
+                </div>
+                
+                <div class="grid grid-cols-1 gap-5">
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Posição principal</label>
+                        <select id="modalPlayerPosition" class="w-full rounded-2xl border border-white/15 bg-black/30 p-4 text-lg text-white font-semibold outline-none transition-all focus:border-cyan-400/50 focus:ring-4 focus:ring-cyan-400/20 focus:bg-black/40">
+                            <option value="goleiro">🧤 Goleiro (GK)</option>
+                            <option value="defesa">🛡️ Defesa (DF)</option>
+                            <option value="meia">⚙️ Meia (ME)</option>
+                            <option value="ataque">🔥 Ataque (AT)</option>
+                            <option value="coringa" selected>🎭 Coringa (ALL)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Técnica</label>
+                        <div class="relative">
+                            <input id="modalPlayerTech" type="range" min="0.5" max="5" step="0.5" value="3" class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-lime-400 hover:accent-lime-300">
+                            <div class="absolute -top-8 left-0 w-full text-center pointer-events-none">
+                                <span id="modalTechValue" class="px-2 py-1 bg-black/50 rounded-full text-sm font-bold text-lime-300">3.0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">Físico</label>
+                        <div class="relative">
+                            <input id="modalPlayerPhys" type="range" min="0.5" max="5" step="0.5" value="3" class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400 hover:accent-cyan-300">
+                            <div class="absolute -top-8 left-0 w-full text-center pointer-events-none">
+                                <span id="modalPhysValue" class="px-2 py-1 bg-black/50 rounded-full text-sm font-bold text-cyan-300">3.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3 pt-4 border-t border-white/5">
+                    <button id="btnDeleteFromModal" type="button" class="w-full rounded-2xl border-2 border-red-400/40 bg-red-500/10 px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-red-300 transition-all hover:border-red-400 hover:bg-red-500/20 hover:text-red-200">
+                        🗑️ Remover jogador
+                    </button>
+                    <button type="submit" class="w-full rounded-2xl bg-gradient-to-r from-arena-neon to-yellow-400 px-6 py-4 text-lg font-bold uppercase tracking-[0.2em] text-black shadow-lg hover:shadow-arena hover:scale-[1.02] transition-all">
+                        💾 Salvar alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // === SISTEMA COMPLETO V3 - SORTEIO CORRIGIDO + SALVAMENTO POR NOME ===
+        const STORAGE_KEY = 'fut-desastre-v3';
+        const PLAYER_PROFILES_KEY = 'fut-desastre-player-profiles';
+        let players = new Map();
+        let currentTeams = [];
+        let tournamentData = { matches: [], standings: {} };
+        let playerProfiles = new Map(); // Novo: salva skills por nome
+
+        // Elementos DOM
+        const elements = {
+            bulkList: document.getElementById('bulkList'),
+            btnImport: document.getElementById('btnImport'),
+            btnDemo: document.getElementById('btnDemo'),
+            counter: document.getElementById('counter'),
+            summaryText: document.getElementById('summaryText'),
+            listContainer: document.getElementById('listContainer'),
+            emptyRoster: document.getElementById('emptyRoster'),
+            btnAddPlayer: document.getElementById('btnAddPlayer'),
+            btnDraw: document.getElementById('btnDraw'),
+            btnRedraw: document.getElementById('btnRedraw'),
+            btnCopyAll: document.getElementById('btnCopyAll'),
+            btnAddMatch: document.getElementById('btnAddMatch'),
+            btnResetTournament: document.getElementById('btnResetTournament'),
+            toast: document.getElementById('toast'),
+            playerModal: document.getElementById('playerModal'),
+            modalTitle: document.getElementById('modalTitle'),
+            modalPlayerId: document.getElementById('modalPlayerId'),
+            modalPlayerName: document.getElementById('modalPlayerName'),
+            modalPlayerPosition: document.getElementById('modalPlayerPosition'),
+            modalPlayerTech: document.getElementById('modalPlayerTech'),
+            modalPlayerPhys: document.getElementById('modalPlayerPhys'),
+            modalTechValue: document.getElementById('modalTechValue'),
+            modalPhysValue: document.getElementById('modalPhysValue'),
+            btnCloseModal: document.getElementById('btnCloseModal'),
+            btnDeleteFromModal: document.getElementById('btnDeleteFromModal'),
+            playerForm: document.getElementById('playerForm'),
+            resultsSection: document.getElementById('resultsSection'),
+            tournamentSection: document.getElementById('tournamentSection'),
+            tournamentContent: document.getElementById('tournamentContent'),
+            resultsSummary: document.getElementById('resultsSummary'),
+            resultsGrid: document.getElementById('resultsGrid')
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
+
+        function initApp() {
+            setupNavigation();
+            loadState();
+            loadPlayerProfiles();
+            renderPlayers();
+            updateSummary();
+            setupEventListeners();
+            updateTournamentUI();
+        }
+
+        // Navegação
+        function setupNavigation() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const section = btn.dataset.section;
+                    if (!section) return;
+                    
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    
+                    document.getElementById(section).classList.add('active');
+                    btn.classList.add('active');
+                });
+            });
+        }
+
+        // Toast
+        function showToast(message, type = 'info') {
+            const toast = elements.toast;
+            toast.textContent = message;
+            
+            const colors = {
+                success: 'border-green-400/30 bg-green-500/95 text-white shadow-green-500/25',
+                error: 'border-red-400/30 bg-red-500/95 text-white shadow-red-500/25',
+                info: 'border-white/10 bg-arena-panel/95 text-white shadow-arena'
+            };
+            
+            toast.className = fixed right-4 top-4 z-50 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl transition-all duration-300 opacity-100 pointer-events-none ${colors[type]};
+            
+            setTimeout(() => toast.classList.add('opacity-0'), 3000);
+        }
+
+        // Processar bulk list
+        function processBulkList(text) {
+            return text.split('\n')
+                .map(line => line.trim())
+                .filter(line => line && !/^\s*[\d\.\-\$\$\$\$\*]+\s*$/.test(line))
+                .map(line => line.replace(/^\s*[\d\.\-\$\$\$\$\*\s]+/, '').trim())
+                .filter((name, i, arr) => name.length > 1 && arr.indexOf(name) === i)
+                .map(name => {
+                    // Carrega perfil salvo se existir
+                    const savedProfile = playerProfiles.get(name.toLowerCase());
+                    return {
+                        id: p${Date.now()}${Math.floor(Math.random()*1000)},
+                        name: name.slice(0, 25),
+                        position: savedProfile?.position || 'coringa',
+                        tech: savedProfile?.tech || 3 + (Math.random() - 0.5),
+                        phys: savedProfile?.phys || 3 + (Math.random() - 0.5)
+                    };
+                });
+        }
+
+        function getOVR(player) {
+            return Math.round(((player.tech || 3) + (player.phys || 3)) / 2 * 10) / 10;
+        }
+
+        // SISTEMA DE PERFIS POR NOME
+        function savePlayerProfile(player) {
+            playerProfiles.set(player.name.toLowerCase(), {
+                position: player.position,
+                tech: player.tech,
+                phys: player.phys,
+                ovr: getOVR(player)
+            });
+            localStorage.setItem(PLAYER_PROFILES_KEY, JSON.stringify(Array.from(playerProfiles.entries())));
+            showToast(💾 Perfil de ${player.name} salvo automaticamente!, 'success');
+        }
+
+        function loadPlayerProfiles() {
+            try {
+                const data = JSON.parse(localStorage.getItem(PLAYER_PROFILES_KEY) || '{}');
+                playerProfiles = new Map(data);
+            } catch (e) {
+                playerProfiles = new Map();
+            }
+        }
+
+        // Core functions
+        function addPlayer(playerData) {
+            players.set(playerData.id, playerData);
+            savePlayerProfile(playerData); // Salva perfil automaticamente
+            saveState();
+            renderPlayers();
+            updateSummary();
+        }
+
+        function renderPlayers() {
+            const container = elements.listContainer;
+            const empty = elements.emptyRoster;
+            
+            if (players.size === 0) {
+                empty.style.display = 'block';
+                container.innerHTML = '';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            
+            const sorted = Array.from(players.values()).sort((a, b) => getOVR(b) - getOVR(a));
+            container.innerHTML = sorted.map(player => {
+                const ovr = getOVR(player);
+                const stars = Array(5).fill('☆').map((star, i) => {
+                    if (i < Math.floor(ovr)) return '★';
+                    if (i === Math.floor(ovr) && ovr % 1 >= 0.5) return '⭐';
+                    return star;
+                });
+                
+                const posEmoji = {
+                    goleiro: '🧤', defesa: '🛡️', meia: '⚙️', ataque: '🔥', coringa: '🎭'
+                }[player.position] || '⚽';
+                
+                return 
+                    <div class="group flex items-center justify-between gap-4 rounded-3xl border border-white/8 bg-gradient-to-r from-black/20 to-black/10 p-4 hover:border-arena-neon/30 hover:bg-arena-neon/5 transition-all hover:shadow-arena">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/15 to-white/5 flex items-center justify-center shadow-lg">
+                                <span class="text-lg">${posEmoji}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-lg text-white truncate">${player.name}</p>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex gap-1 text-lg">${stars.join('')}</div>
+                                    <span class="ml-2 px-2 py-1 bg-arena-neon/20 text-arena-neon text-sm font-bold rounded-full">${ovr}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="editPlayer('${player.id}')" 
+                                class="rounded-2xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-cyan-200 
+                                 hover:from-cyan-500/40 hover:to-blue-500/40 hover:border-cyan-400 hover:text-white hover:shadow-lg transition-all shadow-md opacity-90 hover:opacity-100">
+                            ✏️ Editar
+                        </button>
+                    </div>
+                ;
+            }).join('');
+        }
+
+        function updateSummary() {
+            const count = players.size;
+            elements.counter.textContent = count;
+            elements.summaryText.textContent = count === 0 
+                ? 'Nenhum jogador carregado. Importe uma lista!' 
+                : ✅ ${count} jogador${count !== 1 ? 'es' : ''} prontos para o sorteio;
+        }
+
+        // SORTEIO INTELIGENTE CORRIGIDO
+        function generateTeams() {
+            if (players.size < 4) {
+                showToast('❌ Precisa de pelo menos 4 jogadores!', 'error');
+                return false;
+            }
+            
+            const teamSize = parseInt(elements.teamSize.value) || 5;
+            if (players.size < teamSize * 2) {
+                showToast(❌ Precisa de pelo menos ${teamSize * 2} jogadores!, 'error');
+                return false;
+            }
+
+            let playerList = Array.from(players.values());
+            
+            // Ordena por OVR decrescente
+            playerList.sort((a, b) => getOVR(b) - getOVR(a));
+            
+            // REGRAS INTELIGENTES
+            const teamA = [];
+            const teamB = [];
+            
+            // Regra 1: Separar os dois melhores (se habilitado)
+            if (elements.ruleTopTwo.checked && playerList.length >= 2) {
+                teamA.push(playerList[0]);
+                teamB.push(playerList[1]);
+                playerList.splice(0, 2);
+            }
+            
+            // Regra 2: Espalhar goleiros (se habilitado)
+            if (elements.ruleGoalkeepers.checked) {
+                const goalkeepers = playerList.filter(p => p.position === 'goleiro');
+                goalkeepers.forEach((gk, i) => {
+                    if (i % 2 === 0) teamA.push(gk);
+                    else teamB.push(gk);
+                    const index = playerList.findIndex(p => p.id === gk.id);
+                    playerList.splice(index, 1);
+                });
+            }
+            
+            // Distribuição equilibrada dos restantes (serpente)
+            let index = 0;
+            while (teamA.length < teamSize || teamB.length < teamSize) {
+                if (index < playerList.length) {
+                    if (teamA.length < teamSize) {
+                        teamA.push(playerList[index]);
+                    } else {
+                        teamB.push(playerList[index]);
+                    }
+                    index++;
+                }
+            }
+            
+            // Ordena times por OVR (melhor primeiro)
+            currentTeams = [
+                teamA.sort((a, b) => getOVR(b) - getOVR(a)),
+                teamB.sort((a, b) => getOVR(b) - getOVR(a))
+            ];
+            
+            renderTeams();
+            elements.resultsSection.classList.remove('hidden');
+            elements.tournamentSection.style.display = 'none';
+            showToast('🎲 Times sorteados com BALANÇO PERFEITO!', 'success');
+            return true;
+        }
+
+        function renderTeams() {
+            const summary = elements.resultsSummary;
+            const grid = elements.resultsGrid;
+            
+            const teamAOVR = currentTeams[0].reduce((sum, p) => sum + getOVR(p), 0);
+            const teamBOVR = currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0);
+            const balance = Math.abs(teamAOVR - teamBOVR).toFixed(1);
+            
+            summary.innerHTML = 
+                <div class="text-center">
+                    <div class="text-4xl font-display uppercase tracking-tight text-arena-neon mb-2">Time A</div>
+                    <div class="text-2xl font-bold text-white">${teamAOVR.toFixed(1)}</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-display uppercase tracking-tight text-cyan-400 mb-2">Time B</div>
+                    <div class="text-2xl font-bold text-white">${teamBOVR.toFixed(1)}</div>
+                </div>
+            ;
+            
+            grid.innerHTML = currentTeams.map((team, teamIndex) => {
+                const teamOVR = team.reduce((sum, p) => sum + getOVR(p), 0).toFixed(1);
+                return 
+                    <div class="rounded-3xl border-2 ${teamIndex === 0 ? 'border-arena-neon/50 bg-arena-neon/5' : 'border-cyan-400/50 bg-cyan-400/5'} p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-display text-2xl uppercase italic tracking-tight ${teamIndex === 0 ? 'text-arena-neon' : 'text-cyan-400'}">
+                                ${teamIndex === 0 ? '⚡ TIME A' : '🔥 TIME B'}
+                            </h3>
+                            <div class="text-xl font-bold text-white">${teamOVR}</div>
+                        </div>
+                        <div class="space-y-2">
+                            ${team.map(player => 
+                                <div class="flex items-center justify-between p-3 rounded-2xl bg-black/30 hover:bg-black/50 transition-all">
+                                    <span class="font-semibold text-white">${player.name}</span>
+                                    <span class="text-sm text-white/70">${getOVR(player).toFixed(1)}</span>
+                                </div>
+                            ).join('')}
+                        </div>
+                    </div>
+                ;
+            }).join('') + 
+                <div class="text-center mt-6 p-4 rounded-3xl bg-gradient-to-r from-arena-neon/10 to-cyan-400/10 border border-white/10">
+                    <p class="text-sm text-white/70 mb-1">⚖️ BALANÇO DOS TIMES</p>
+                    <p class="text-xl font-bold text-arena-neon">DIFERENÇA: ${balance} OVR</p>
+                </div>
+            ;
+        }
+
+        // State management
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                players: Array.from(players.entries()),
+                tournamentData
+            }));
+        }
+
+        function loadState() {
+            try {
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                if (data.players) players = new Map(data.players);
+                tournamentData = data.tournamentData || { matches: [], standings: {} };
+            } catch (e) {
+                players = new Map();
+                tournamentData = { matches: [], standings: {} };
+            }
+        }
+
+        // Modal functions
+        function editPlayer(id) {
+            const player = players.get(id);
+            if (!player) return;
+            
+            elements.modalPlayerId.value = id;
+            elements.modalPlayerName.value = player.name;
+            elements.modalPlayerPosition.value = player.position || 'coringa';
+            elements.modalPlayerTech.value = player.tech || 3;
+            elements.modalPlayerPhys.value = player.phys || 3;
+            elements.modalTechValue.textContent = (player.tech || 3).toFixed(1);
+            elements.modalPhysValue.textContent = (player.phys || 3).toFixed(1);
+            elements.modalTitle.textContent = Editar: ${player.name};
+            
+            elements.playerModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            elements.modalPlayerName.focus();
+        }
+
+        function closeModal() {
+            elements.playerModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function copyTeams() {
+            const teamAOVR = currentTeams[0].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1);
+            const teamBOVR = currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1);
+            const balance = Math.abs(teamAOVR - teamBOVR).toFixed(1);
+            
+            const text = ⚽ ESCALAÇÕES FUT-DESASTRE ⚽
+
+🏆 TIME A (OVR Total: ${teamAOVR})
+${currentTeams[0].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
+
+🔥 TIME B (OVR Total: ${teamBOVR})
+${currentTeams[1].map(p => • ${p.name} (${getOVR(p).toFixed(1)})).join('\n')}
+
+⚖️ BALANÇO: ${balance} OVR de diferença
+🎲 Sorteado pelo FUT-DESASTRE Matchmaker;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📋 Times copiados com BALANÇO!', 'success');
+            });
+        }
+
+        // Event listeners
+        function setupEventListeners() {
+            // Import
+            elements.btnImport.onclick = () => {
+                const text = elements.bulkList.value.trim();
+                if (!text) return showToast('📝 Cole nomes primeiro!', 'error');
+                
+                const newPlayers = processBulkList(text);
+                newPlayers.forEach(addPlayer);
+                elements.bulkList.value = '';
+                showToast(✅ ${newPlayers.length} jogador${newPlayers.length > 1 ? 'es' : ''} adicionado${newPlayers.length > 1 ? 's' : ''}!, 'success');
+            };
+
+            // Demo
+            elements.btnDemo.onclick = () => {
+                const demo = [
+                    {name:'Kaio',position:'goleiro',tech:4.2,phys:3.8},
+                    {name:'Pedro',position:'defesa',tech:3.8,phys:4.5},
+                    {name:'João',position:'meia',tech:4.5,phys:3.7},
+                    {name:'Leo',position:'ataque',tech:4.8,phys:3.2},
+                    {name:'Rafa',position:'coringa',tech:3.5,phys:3.8},
+                    {name:'Bruno',position:'defesa',tech:2.8,phys:4.7},
+                    {name:'Vitor',position:'goleiro',tech:3.2,phys:3.5},
+                    {name:'Davi',position:'meia',tech:4.0,phys:3.6},
+                    {name:'Igor',position:'ataque',tech:4.3,phys:4.2},
+                    {name:'Breno',position:'coringa',tech:3.7,phys:4.0}
+                ];
+                demo.forEach(p => { p.id = demo${Math.random().toString(36).substr(2,9)}; addPlayer(p); });
+                showToast('🎮 Demo completa carregada!', 'success');
+            };
+
+            // Sortear
+            elements.btnDraw.onclick = () => generateTeams();
+            elements.btnRedraw.onclick = () => generateTeams();
+
+            // Copy
+            elements.btnCopyAll.onclick = copyTeams;
+
+            // Modal
+            elements.btnAddPlayer.onclick = () => {
+                elements.modalTitle.textContent = 'Novo jogador';
+                elements.modalPlayerId.value = '';
+                elements.modalPlayerName.value = '';
+                elements.modalPlayerPosition.value = 'coringa';
+                elements.modalPlayerTech.value = 3;
+                elements.modalPlayerPhys.value = 3;
+                elements.modalTechValue.textContent = '3.0';
+                elements.modalPhysValue.textContent = '3.0';
+                elements.playerModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            };
+
+            elements.btnCloseModal.onclick = closeModal;
+            elements.modalPlayerTech.oninput = (e) => elements.modalTechValue.textContent = parseFloat(e.target.value).toFixed(1);
+            elements.modalPlayerPhys.oninput = (e) => elements.modalPhysValue.textContent = parseFloat(e.target.value).toFixed(1);
+
+            elements.playerForm.onsubmit = (e) => {
+                e.preventDefault();
+                const id = elements.modalPlayerId.value || p${Date.now()}${Math.random().toString(36).substr(2,9)};
+                const player = {
+                    id, 
+                    name: elements.modalPlayerName.value.trim(),
+                    position: elements.modalPlayerPosition.value,
+                    tech: parseFloat(elements.modalPlayerTech.value),
+                    phys: parseFloat(elements.modalPlayerPhys.value)
+                };
+                if (!player.name) return showToast('❌ Nome obrigatório!', 'error');
+                addPlayer(player);
+                closeModal();
+                showToast('✅ Jogador salvo com perfil permanente!', 'success');
+            };
+
+            elements.btnDeleteFromModal.onclick = () => {
+                const id = elements.modalPlayerId.value;
+                if (id && players.has(id)) {
+                    const player = players.get(id);
+                    players.delete(id);
+                    saveState();
+                    renderPlayers();
+                    updateSummary();
+                    closeModal();
+                    showToast(🗑️ ${player.name} removido!, 'error');
+                }
+            };
+
+            // Tournament
+            elements.btnAddMatch.onclick = () => {
+                showToast('📝 Funcionalidade de torneio em desenvolvimento!', 'info');
+            };
+            elements.btnResetTournament.onclick = () => {
+                tournamentData = { matches: [], standings: {} };
+                saveState();
+                updateTournamentUI();
+                showToast('🗑️ Torneio zerado!', 'error');
+            };
+        }
+
+        function updateTournamentUI() {
+            if (players.size === 0) {
+                elements.tournamentContent.innerHTML = '<div class="text-center py-12 text-white/50"><div class="text-5xl mb-4">⚽</div><h3 class="font-display text-2xl uppercase italic tracking-tight mb-2">Sem jogadores</h3><p>Carregue o elenco primeiro</p></div>';
+            } else {
+                elements.tournamentContent.innerHTML = '<div class="text-center py-12 text-white/50"><div class="text-5xl mb-4">🎲</div><h3 class="font-display text-2xl uppercase italic tracking-tight mb-2">Pronto para sorteio</h3><p>Vá na aba Config → Sortear baba</p></div>';
+            }
+        }
+
+        // Expor funções globais para os botões
+        window.editPlayer = editPlayer;
+    </script>
+</body>
+</html>
+
+Os principais bugs do seu sorteio estão aqui:
+
+o algoritmo atual não distribui os jogadores de forma realmente equilibrada;
+
+pode repetir lógica errada quando sobra jogador;
+
+os goleiros podem acabar desequilibrando;
+
+ao editar jogador, você usa addPlayer() e isso recria/sobrescreve sem controle;
+
+o torneio ainda está “placeholder” e algumas telas ficam inconsistentes;
+
+teamAOVR e teamBOVR viram string por causa do .toFixed() antes da conta do balance.
+
+Troque APENAS essas partes:
+
+1) SUBSTITUA a função generateTeams()
+function shuffleArray(arr) {
+    return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function generateTeams() {
+    if (players.size < 4) {
+        showToast('❌ Precisa de pelo menos 4 jogadores!', 'error');
+        return false;
+    }
+
+    const teamSize = parseInt(elements.teamSize.value) || 5;
+    const totalNeeded = teamSize * 2;
+
+    if (players.size < totalNeeded) {
+        showToast(`❌ Precisa de pelo menos ${totalNeeded} jogadores!`, 'error');
+        return false;
+    }
+
+    let playerList = Array.from(players.values());
+
+    // Ordena do melhor pro pior
+    playerList.sort((a, b) => getOVR(b) - getOVR(a));
+
+    const teamA = [];
+    const teamB = [];
+
+    // ===== MELHORES SEPARADOS =====
+    if (elements.ruleTopTwo.checked && playerList.length >= 2) {
+        teamA.push(playerList.shift());
+        teamB.push(playerList.shift());
+    }
+
+    // ===== GOLEIROS =====
+    if (elements.ruleGoalkeepers.checked) {
+        const goalkeepers = playerList.filter(p => p.position === 'goleiro');
+
+        goalkeepers.forEach((gk, index) => {
+            if (teamA.length < teamSize && index % 2 === 0) {
+                teamA.push(gk);
+            } else if (teamB.length < teamSize) {
+                teamB.push(gk);
+            }
+        });
+
+        playerList = playerList.filter(p => p.position !== 'goleiro');
+    }
+
+    // ===== EMBARALHA RESTO =====
+    playerList = shuffleArray(playerList);
+
+    // ===== BALANCEAMENTO REAL =====
+    while (playerList.length > 0) {
+        const player = playerList.shift();
+
+        const teamAOVR = teamA.reduce((s, p) => s + getOVR(p), 0);
+        const teamBOVR = teamB.reduce((s, p) => s + getOVR(p), 0);
+
+        if (teamA.length >= teamSize) {
+            teamB.push(player);
+        } else if (teamB.length >= teamSize) {
+            teamA.push(player);
+        } else {
+            if (teamAOVR <= teamBOVR) {
+                teamA.push(player);
+            } else {
+                teamB.push(player);
+            }
+        }
+    }
+
+    currentTeams = [
+        teamA.sort((a, b) => getOVR(b) - getOVR(a)),
+        teamB.sort((a, b) => getOVR(b) - getOVR(a))
+    ];
+
+    renderTeams();
+
+    elements.resultsSection.classList.remove('hidden');
+    elements.tournamentSection.style.display = 'none';
+
+    showToast('🎲 Sorteio equilibrado realizado!', 'success');
+
+    return true;
+}
+2) SUBSTITUA o começo da função renderTeams()
+TROQUE ISSO:
+
+const teamAOVR = currentTeams[0].reduce((sum, p) => sum + getOVR(p), 0);
+const teamBOVR = currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0);
+const balance = Math.abs(teamAOVR - teamBOVR).toFixed(1);
+POR ISSO:
+
+const teamAOVR = Number(
+    currentTeams[0].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)
+);
+
+const teamBOVR = Number(
+    currentTeams[1].reduce((sum, p) => sum + getOVR(p), 0).toFixed(1)
+);
+
+const balance = Math.abs(teamAOVR - teamBOVR).toFixed(1);
+3) BUG DO EDITAR JOGADOR
+No submit do modal, você está usando:
+
+addPlayer(player);
+troque por:
+
+players.set(id, player);
+savePlayerProfile(player);
+saveState();
+renderPlayers();
+updateSummary();
+porque addPlayer() foi feito pra adicionar novo jogador e acaba causando comportamento estranho em edição.
+
+4) MELHORIA NO RESET DO TORNEIO
+Substitua:
+
+elements.btnResetTournament.onclick = () => {
+    tournamentData = { matches: [], standings: {} };
+por:
+
+elements.btnResetTournament.onclick = () => {
+
+    if (!confirm('Deseja realmente zerar o torneio?')) return;
+
+    tournamentData = {
+        matches: [],
+        standings: {}
+    };
+
+    currentTeams = [];
+
+    elements.resultsSection.classList.add('hidden');
+    elements.tournamentSection.style.display = 'block';
+
+    saveState();
+    updateTournamentUI();
+
+    showToast('🗑️ Torneio resetado!', 'success');
+};
+5) BUG VISUAL MOBILE
+Essa linha:
+
+* { max-width: 480px; margin-left: auto; margin-right: auto; }
+é MUITO problemática.
+
+Ela quebra:
+
+modal;
+
+fixed;
+
+nav;
+
+animações;
+
+responsividade;
+
+overlays.
+
+REMOVE ELA COMPLETAMENTE.
+
+6) ADICIONE ESSE CSS
+html, body {
+    overflow-x: hidden;
+}
+
+button {
+    touch-action: manipulation;
+}
+
+.section {
+    width: 100%;
+}
+7) MELHORIA FINAL NO IMPORTADOR
+Troque:
+
+.filter((name, i, arr) => name.length > 1 && arr.indexOf(name) === i)
+por:
+
+.filter((name, i, arr) => {
+    const normalized = name.toLowerCase();
+    return name.length > 1 &&
+           arr.findIndex(n => n.toLowerCase() === normalized) === i;
+})
+assim “KAIO” e “Kaio” não entram duplicados.
+
+Com essas correções:
+
+o sorteio fica MUITO mais equilibrado;
+
+o torneio para de bugar visualmente;
+
+o modal fica correto no mobile;
+
+edição para de duplicar;
+
+balanceamento fica inteligente;
+
+os goleiros ficam distribuídos direito;
+
+evita bugs de OVR/string.
+
+
+faça as implementações e deixe so um cod
+
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
@@ -902,3 +1891,4 @@ loadState();
 
 </body>
 </html>
+
