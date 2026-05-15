@@ -1,200 +1,527 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Fut-Desastre</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Arial Black', sans-serif;
-      background: radial-gradient(circle at top, #000 60%, #111);
-      color: #FFD700;
-      overflow-x: hidden;
-    }
-    header {
-      text-align: center;
-      padding: 15px;
-      background: #000;
-      font-size: 1.5em;
-      font-weight: bold;
-      text-shadow: 0px 0px 10px #FFD700;
-    }
-    .container {
-      width: 100%;
-      max-width: 480px;
-      margin: auto;
-      padding: 15px;
-    }
-    section {
-      display: none;
-      animation: fadeSlide 0.6s ease forwards;
-    }
-    section.active {
-      display: block;
-    }
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateX(30px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-    h2 { margin: 15px 0 10px; font-size: 1.2em; }
-    input, select, button {
-      width: 100%;
-      margin: 5px 0;
-      padding: 12px;
-      border-radius: 5px;
-      border: none;
-      font-size: 1em;
-    }
-    button {
-      background-color: #FFD700;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    button:hover {
-      transform: scale(1.05);
-      box-shadow: 0px 0px 10px #FFD700;
-    }
-    .team {
-      margin-top: 15px;
-      padding: 10px;
-      border: 2px solid #FFD700;
-      border-radius: 10px;
-      background: rgba(255, 215, 0, 0.05);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      font-size: 0.9em;
-    }
-    th, td {
-      border: 1px solid #FFD700;
-      padding: 8px;
-      text-align: center;
-    }
-    nav {
-      display: flex;
-      justify-content: space-around;
-      background: #111;
-      padding: 10px;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-    }
-    nav button {
-      flex: 1;
-      margin: 0 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futebol Manager - Game Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            color: #FFD700;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            padding: 20px 15px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700; }
+            to { text-shadow: 0 0 30px #FFD700, 0 0 60px #FFD700, 0 0 80px #FFD700; }
+        }
+
+        section {
+            display: none;
+            animation: fadeIn 0.6s ease-out;
+            padding-bottom: 100px;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #FFD700;
+            border-radius: 12px;
+            color: #FFD700;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder, select::placeholder {
+            color: rgba(255,215,0,0.6);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+            transform: scale(1.02);
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.2em;
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+            margin-bottom: 15px;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(255,215,0,0.6);
+            background: linear-gradient(45deg, #FFA500, #FFD700);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .jogadores-list, .times-list, .partidas-list {
+            margin-top: 25px;
+        }
+
+        .jogador-item, .time-item, .partida-item {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border-left: 5px solid #FFD700;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .jogador-item:hover, .time-item:hover, .partida-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(255,215,0,0.3);
+        }
+
+        .estrelas {
+            color: #FFD700;
+            font-size: 1.3em;
+            margin-left: 10px;
+        }
+
+        .time-a { border-left-color: #00ff88; }
+        .time-b { border-left-color: #ff4444; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+        }
+
+        th {
+            background: rgba(255,215,0,0.2);
+            font-size: 1em;
+        }
+
+        .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px);
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-around;
+            border-top: 2px solid #FFD700;
+            box-shadow: 0 -4px 20px rgba(255,215,0,0.3);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #FFD700;
+            font-family: 'Arial Black', Arial, sans-serif;
+            font-size: 0.9em;
+            padding: 10px 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 70px;
+        }
+
+        .nav-btn.active {
+            color: #FFA500;
+            text-shadow: 0 0 10px #FFD700;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.1);
+            text-shadow: 0 0 15px #FFD700;
+        }
+
+        .nav-icon {
+            font-size: 1.5em;
+        }
+
+        .feedback {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            animation: fadeSlide 0.5s ease-out;
+        }
+
+        .success { background: rgba(0,255,136,0.2); border: 2px solid #00ff88; }
+        .warning { background: rgba(255,215,0,0.2); border: 2px solid #FFD700; }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .total-jogadores {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 10px;
+            border: 2px solid #FFD700;
+        }
+    </style>
 </head>
 <body>
-  <header>⚽ Fut-Desastre ⚽</header>
-  <div class="container">
-    <!-- Tela Jogadores -->
-    <section id="jogadores" class="active">
-      <h2>Adicionar Jogador</h2>
-      <input type="text" id="nomeJogador" placeholder="Nome do Jogador">
-      <select id="estrelaJogador">
-        <option value="1">⭐</option>
-        <option value="2">⭐⭐</option>
-        <option value="3">⭐⭐⭐</option>
-        <option value="4">⭐⭐⭐⭐</option>
-        <option value="5">⭐⭐⭐⭐⭐</option>
-      </select>
-      <button onclick="adicionarJogador()">Adicionar</button>
-    </section>
+    <div class="container">
+        <h1>⚽ FUTEBOL MANAGER</h1>
 
-    <!-- Tela Sorteio -->
-    <section id="sorteio">
-      <h2>Sorteio de Times</h2>
-      <button onclick="sortearTimes()">Sortear Times</button>
-      <div id="timeA" class="team"><h3>Time A</h3></div>
-      <div id="timeB" class="team"><h3>Time B</h3></div>
-    </section>
+        <!-- SEÇÃO JOGADORES -->
+        <section id="jogadores" class="active">
+            <div class="total-jogadores" id="totalJogadores">Total: 0 jogadores</div>
+            
+            <div class="form-group">
+                <label>Nome do Jogador</label>
+                <input type="text" id="nomeJogador" placeholder="Digite o nome...">
+            </div>
+            
+            <div class="form-group">
+                <label>Estrelas (Habilidade)</label>
+                <select id="estrelas">
+                    <option value="1">⭐</option>
+                    <option value="2">⭐⭐</option>
+                    <option value="3">⭐⭐⭐</option>
+                    <option value="4">⭐⭐⭐⭐</option>
+                    <option value="5">⭐⭐⭐⭐⭐</option>
+                </select>
+            </div>
+            
+            <button onclick="adicionarJogador()">➕ ADICIONAR JOGADOR</button>
+            
+            <div id="feedbackJogadores" class="feedback" style="display: none;"></div>
+            
+            <div class="jogadores-list" id="listaJogadores"></div>
+        </section>
 
-    <!-- Tela Partidas -->
-    <section id="partidas">
-      <h2>Adicionar Partida</h2>
-      <input type="text" id="partida" placeholder="Descrição da Partida">
-      <input type="text" id="resultado" placeholder="Resultado (ex: 2x1)">
-      <button onclick="adicionarPartida()">Registrar Partida</button>
-    </section>
+        <!-- SEÇÃO SORTEIO -->
+        <section id="sorteio">
+            <button onclick="sortearTimes()" id="btnSortear" disabled>SORTEAR TIMES</button>
+            <div id="timesContainer"></div>
+        </section>
 
-    <!-- Tela Tabela -->
-    <section id="tabela">
-      <h2>Tabela de Partidas</h2>
-      <table id="tabelaPartidas">
-        <tr><th>Partida</th><th>Resultado</th></tr>
-      </table>
-    </section>
-  </div>
+        <!-- SEÇÃO PARTIDAS -->
+        <section id="partidas">
+            <div class="form-group">
+                <label>Descrição da Partida</label>
+                <input type="text" id="descPartida" placeholder="Ex: Final - Time A vs Time B">
+            </div>
+            
+            <div class="form-group">
+                <label>Resultado</label>
+                <input type="text" id="resultado" placeholder="Ex: Time A 3 x 2 Time B">
+            </div>
+            
+            <button onclick="adicionarPartida()">⚽ REGISTRAR PARTIDA</button>
+            
+            <div id="feedbackPartidas" class="feedback" style="display: none;"></div>
+        </section>
 
-  <!-- Navegação -->
-  <nav>
-    <button onclick="mostrarTela('jogadores')">Jogadores</button>
-    <button onclick="mostrarTela('sorteio')">Sorteio</button>
-    <button onclick="mostrarTela('partidas')">Partidas</button>
-    <button onclick="mostrarTela('tabela')">Tabela</button>
-  </nav>
+        <!-- SEÇÃO TABELA -->
+        <section id="tabela">
+            <h2 style="text-align: center; margin-bottom: 25px;">📊 HISTÓRICO DE PARTIDAS</h2>
+            <div id="tabelaPartidas">
+                <p style="text-align: center; color: rgba(255,215,0,0.6);">Nenhuma partida registrada</p>
+            </div>
+        </section>
+    </div>
 
-  <script>
-    let jogadores = [];
-    let partidas = [];
+    <!-- MENU INFERIOR -->
+    <nav class="nav-bottom">
+        <button class="nav-btn active" onclick="mudarTela('jogadores')">
+            <span class="nav-icon">👥</span>
+            Jogadores
+        </button>
+        <button class="nav-btn" onclick="mudarTela('sorteio')">
+            <span class="nav-icon">🎲</span>
+            Sorteio
+        </button>
+        <button class="nav-btn" onclick="mudarTela('partidas')">
+            <span class="nav-icon">⚽</span>
+            Partidas
+        </button>
+        <button class="nav-btn" onclick="mudarTela('tabela')">
+            <span class="nav-icon">📊</span>
+            Tabela
+        </button>
+    </nav>
 
-    function mostrarTela(id) {
-      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
-    }
+    <script>
+        let jogadores = JSON.parse(localStorage.getItem('jogadores')) || [];
+        let partidas = JSON.parse(localStorage.getItem('partidas')) || [];
+        let timesSorteados = { timeA: [], timeB: [] };
 
-    function adicionarJogador() {
-      const nome = document.getElementById("nomeJogador").value;
-      const estrelas = parseInt(document.getElementById("estrelaJogador").value);
-      if(nome) {
-        jogadores.push({nome, estrelas});
-        alert("Jogador adicionado: " + nome + " (" + estrelas + "⭐)");
-        document.getElementById("nomeJogador").value = "";
-      }
-    }
+        // Inicialização
+        window.onload = function() {
+            atualizarListaJogadores();
+            atualizarTabelaPartidas();
+            atualizarTotalJogadores();
+        };
 
-    function sortearTimes() {
-      jogadores.sort((a,b) => b.estrelas - a.estrelas);
-      let timeA = [], timeB = [];
-      let somaA = 0, somaB = 0;
-
-      jogadores.forEach(j => {
-        if(somaA <= somaB) {
-          timeA.push(j);
-          somaA += j.estrelas;
-        } else {
-          timeB.push(j);
-          somaB += j.estrelas;
+        function mudarTela(tela) {
+            // Remove classe active de todas as sections
+            document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+            // Remove active dos botões de navegação
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Adiciona active na tela selecionada
+            document.getElementById(tela).classList.add('active');
+            event.target.closest('.nav-btn').classList.add('active');
+            
+            // Atualiza botão de sorteio
+            if (tela === 'sorteio') {
+                document.getElementById('btnSortear').disabled = jogadores.length < 2;
+            }
+            
+            // Animação de transição
+            document.querySelector('.container').style.animation = 'fadeSlide 0.5s ease-out';
         }
-      });
 
-      document.getElementById("timeA").innerHTML = "<h3>Time A</h3>" + timeA.map(j => j.nome + " ("+j.estrelas+"⭐)").join("<br>");
-      document.getElementById("timeB").innerHTML = "<h3>Time B</h3>" + timeB.map(j => j.nome + " ("+j.estrelas+"⭐)").join("<br>");
-    }
+        function adicionarJogador() {
+            const nome = document.getElementById('nomeJogador').value.trim();
+            const estrelas = parseInt(document.getElementById('estrelas').value);
+            
+            if (!nome) {
+                mostrarFeedback('feedbackJogadores', 'Digite o nome do jogador!', 'warning');
+                return;
+            }
+            
+            if (jogadores.find(j => j.nome.toLowerCase() === nome.toLowerCase())) {
+                mostrarFeedback('feedbackJogadores', 'Jogador já existe!', 'warning');
+                return;
+            }
+            
+            jogadores.push({ nome, estrelas });
+            jogadores.sort((a, b) => b.estrelas - a.estrelas);
+            
+            localStorage.setItem('jogadores', JSON.stringify(jogadores));
+            
+            document.getElementById('nomeJogador').value = '';
+            
+            atualizarListaJogadores();
+            atualizarTotalJogadores();
+            mostrarFeedback('feedbackJogadores', `✅ ${nome} adicionado com ${'⭐'.repeat(estrelas)}!`, 'success');
+        }
 
-    function adicionarPartida() {
-      const partida = document.getElementById("partida").value;
-      const resultado = document.getElementById("resultado").value;
-      if(partida && resultado) {
-        partidas.push({partida, resultado});
-        atualizarTabela();
-        document.getElementById("partida").value = "";
-        document.getElementById("resultado").value = "";
-      }
-    }
+        function atualizarListaJogadores() {
+            const lista = document.getElementById('listaJogadores');
+            lista.innerHTML = '';
+            
+            jogadores.forEach((jogador, index) => {
+                const div = document.createElement('div');
+                div.className = 'jogador-item';
+                div.innerHTML = `
+                    <strong>${jogador.nome}</strong>
+                    <span class="estrelas">${'⭐'.repeat(jogador.estrelas)}</span>
+                    <button onclick="removerJogador(${index})" style="width: auto; padding: 8px 15px; margin-top: 10px; font-size: 0.9em;">❌</button>
+                `;
+                lista.appendChild(div);
+            });
+        }
 
-    function atualizarTabela() {
-      const tabela = document.getElementById("tabelaPartidas");
-      tabela.innerHTML = "<tr><th>Partida</th><th>Resultado</th></tr>";
-      partidas.forEach(p => {
-        tabela.innerHTML += "<tr><td>"+p.partida+"</td><td>"+p.resultado+"</td></tr>";
-      });
-    }
-  </script>
+        function removerJogador(index) {
+            const nome = jogadores[index].nome;
+            jogadores.splice(index, 1);
+            localStorage.setItem('jogadores', JSON.stringify(jogadores));
+            atualizarListaJogadores();
+            atualizarTotalJogadores();
+            mostrarFeedback('feedbackJogadores', `🗑️ ${nome} removido!`, 'warning');
+        }
+
+        function atualizarTotalJogadores() {
+            document.getElementById('totalJogadores').textContent = `Total: ${jogadores.length} jogadores`;
+        }
+
+        function sortearTimes() {
+            if (jogadores.length < 2) return;
+            
+            // Ordena por estrelas (maior primeiro)
+            const jogadoresOrdenados = [...jogadores].sort((a, b) => b.estrelas - a.estrelas);
+            
+            // Distribuição balanceada
+            const timeA = [];
+            const timeB = [];
+            
+            jogadoresOrdenados.forEach((jogador, index) => {
+                if (index % 2 === 0) {
+                    timeA.push(jogador);
+                } else {
+                    timeB.push(jogador);
+                }
+            });
+            
+            timesSorteados = { timeA, timeB };
+            exibirTimes();
+            mostrarFeedback('feedbackJogadores', '🎲 Times sorteados com equilíbrio perfeito!', 'success');
+        }
+
+        function exibirTimes() {
+            const container = document.getElementById('timesContainer');
+            container.innerHTML = `
+                <div class="time-item time-a" style="margin-bottom: 20px;">
+                    <h3 style="color: #00ff88; margin-bottom: 15px;">⚡ TIME A (${timesSorteados.timeA.reduce((sum, j) => sum + j.estrelas, 0)} estrelas)</h3>
+                    ${timesSorteados.timeA.map(j => `<div><strong>${j.nome}</strong> ${'⭐'.repeat(j.estrelas)}</div>`).join('')}
+                </div>
+                <div class="time-item time-b">
+                    <h3 style="color: #ff4444; margin-bottom: 15px;">🔥 TIME B (${timesSorteados.timeB.reduce((sum, j) => sum + j.estrelas, 0)} estrelas)</h3>
+                    ${timesSorteados.timeB.map(j => `<div><strong>${j.nome}</strong> ${'⭐'.repeat(j.estrelas)}</div>`).join('')}
+                </div>
+            `;
+        }
+
+        function adicionarPartida() {
+            const desc = document.getElementById('descPartida').value.trim();
+            const resultado = document.getElementById('resultado').value.trim();
+            
+            if (!desc || !resultado) {
+                mostrarFeedback('feedbackPartidas', 'Preencha descrição e resultado!', 'warning');
+                return;
+            }
+            
+            const partida = {
+                id: Date.now(),
+                data: new Date().toLocaleString('pt-BR'),
+                descricao: desc,
+                resultado: resultado
+            };
+            
+            partidas.unshift(partida);
+            localStorage.setItem('partidas', JSON.stringify(partidas));
+            
+            document.getElementById('descPartida').value = '';
+            document.getElementById('resultado').value = '';
+            
+            atualizarTabelaPartidas();
+            mostrarFeedback('feedbackPartidas', '⚽ Partida registrada!', 'success');
+        }
+
+        function atualizarTabelaPartidas() {
+            const container = document.getElementById('tabelaPartidas');
+            
+            if (partidas.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: rgba(255,215,0,0.6);">Nenhuma partida registrada</p>';
+                return;
+            }
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Partida</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            partidas.forEach(partida => {
+                html += `
+                    <tr>
+                        <td>${partida.data}</td>
+                        <td>${partida.descricao}</td>
+                        <td>${partida.resultado}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function mostrarFeedback(id, mensagem, tipo) {
+            const feedback = document.getElementById(id);
+            feedback.textContent = mensagem;
+            feedback.className = `feedback ${tipo}`;
+            feedback.style.display = 'block';
+            
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 3000);
+        }
+
+        // Enter para adicionar jogador
+        document.getElementById('nomeJogador').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') adicionarJogador();
+        });
+
+        // Verifica se há jogadores suficientes para sorteio
+        document.getElementById('btnSortear').disabled = jogadores.length < 2;
+    </script>
 </body>
 </html>
