@@ -251,7 +251,7 @@
                     <div class="space-y-4 mb-4">
                         <label>
                             <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Jogadores por time</span>
-                            <input type="number" id="teamSize" min="2" max="11" value="5" class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-xl font-bold text-arena-neon">
+                            <input type="number" id="teamSize" min="1" max="11" value="5" class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-xl font-bold text-arena-neon">
                         </label>
                         
                         <label>
@@ -354,7 +354,7 @@
         </section>
     </main>
 
-    <!-- MODAL EDITAR JOGADOR (FIXADO NO TOPO) -->
+    <!-- MODAL EDITAR JOGADOR -->
     <div id="playerModal" class="fixed inset-0 z-40 hidden flex items-center justify-center bg-black/75 p-3 overflow-y-auto">
         <div class="w-full max-w-lg rounded-[32px] border border-white/10 bg-arena-panel p-5 shadow-arena my-8">
             <div class="mb-5 flex items-start justify-between">
@@ -378,7 +378,7 @@
                     <select id="modalPlayerPosition" class="w-full rounded-2xl border border-white/10 bg-black/35 p-3 text-white outline-none focus:border-cyan-400/50"></select>
                 </label>
 
-                <!-- TÉCNICA COM STARS -->
+                <!-- TÉCNICA COM STARS (APENAS 5) -->
                 <div>
                     <span class="text-xs font-bold uppercase text-white/45 mb-3 block">Técnica</span>
                     <div class="flex flex-col items-center justify-center gap-2">
@@ -388,7 +388,7 @@
                     <input type="hidden" id="modalPlayerTech" value="3">
                 </div>
 
-                <!-- FÍSICO COM STARS -->
+                <!-- FÍSICO COM STARS (APENAS 5) -->
                 <div>
                     <span class="text-xs font-bold uppercase text-white/45 mb-3 block">Físico</span>
                     <div class="flex flex-col items-center justify-center gap-2">
@@ -420,11 +420,12 @@
             <form id="matchForm" class="space-y-4 max-h-96 overflow-y-auto pr-3">
                 <input type="hidden" id="matchModalId">
                 
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <p class="text-xs font-bold uppercase text-white/45 mb-2">Time 1</p>
-                        <p id="matchHomeTeam" class="text-sm font-bold text-white">-</p>
-                    </div>
+                <div class="space-y-3 mb-4">
+                    <label>
+                        <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Time 1</span>
+                        <select id="matchHomeTeam" class="w-full rounded-2xl border border-white/10 bg-black/35 p-3 text-white outline-none focus:border-cyan-400/50"></select>
+                    </label>
+
                     <div class="text-center">
                         <p class="text-xs font-bold uppercase text-white/45 mb-2">Resultado</p>
                         <div class="flex gap-2">
@@ -433,10 +434,11 @@
                             <input id="matchAwayScore" type="number" min="0" max="99" value="0" class="flex-1 rounded-lg border border-white/10 bg-black/35 p-2 text-center text-white">
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-xs font-bold uppercase text-white/45 mb-2">Time 2</p>
-                        <p id="matchAwayTeam" class="text-sm font-bold text-white">-</p>
-                    </div>
+
+                    <label>
+                        <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Time 2</span>
+                        <select id="matchAwayTeam" class="w-full rounded-2xl border border-white/10 bg-black/35 p-3 text-white outline-none focus:border-cyan-400/50"></select>
+                    </label>
                 </div>
 
                 <div class="border-t border-white/10 pt-4">
@@ -470,7 +472,7 @@
     <div id="toast" class="pointer-events-none fixed right-3 top-3 z-50 rounded-2xl border border-white/10 bg-arena-panel/95 px-4 py-3 text-sm text-white opacity-0 shadow-arena transition-all"></div>
 
     <script>
-        const STORAGE_KEY = 'fut-desastre-v7';
+        const STORAGE_KEY = 'fut-desastre-v8';
         const POSITION_OPTIONS = [
             { value: 'goleiro', label: 'Goleiro', short: 'GK' },
             { value: 'defesa', label: 'Defesa', short: 'DEF' },
@@ -556,15 +558,15 @@
             toast: document.getElementById('toast')
         };
 
-        // STAR RATING COMPONENT
+        // STAR RATING COMPONENT - APENAS 5 ESTRELAS (0.5 a 5.0)
         function createStarRating(containerId, initialValue, onChangeCallback) {
             const container = document.getElementById(containerId);
             if (!container) return;
             
             container.innerHTML = '';
             
-            // Criar 5 estrelas (10 half-stars = 5 completas)
-            for (let i = 0.5; i <= 5; i += 0.5) {
+            // Criar apenas 5 estrelas (incremento 1.0)
+            for (let i = 1; i <= 5; i += 1) {
                 const star = document.createElement('button');
                 star.type = 'button';
                 star.className = 'star';
@@ -612,8 +614,6 @@
                 
                 if (starValue <= value) {
                     star.classList.add('star-full');
-                } else if (starValue - 0.5 < value && value < starValue) {
-                    star.classList.add('star-half');
                 }
             });
         }
@@ -631,12 +631,12 @@
         }
 
         function clampRate(value) {
-            const stepped = Math.round((Number(value) || 3) * 2) / 2;
-            return Math.max(0.5, Math.min(5, stepped));
+            const stepped = Math.round(Number(value) || 3);
+            return Math.max(1, Math.min(5, stepped));
         }
 
         function clampTeamSize(value) {
-            return Math.max(2, Math.min(11, Math.floor(value || 5)));
+            return Math.max(1, Math.min(11, Math.floor(value || 5)));
         }
 
         function getPlayerScore(player) {
@@ -844,12 +844,25 @@
             editingMatchId = matchId;
             const match = matchId ? findMatchById(matchId) : null;
             
+            // Popula os selects de times
+            elements.matchHomeTeam.innerHTML = '';
+            elements.matchAwayTeam.innerHTML = '';
+            currentTeams.forEach(team => {
+                const option1 = document.createElement('option');
+                option1.value = team.id;
+                option1.textContent = team.name;
+                elements.matchHomeTeam.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = team.id;
+                option2.textContent = team.name;
+                elements.matchAwayTeam.appendChild(option2);
+            });
+            
             if (match) {
                 elements.matchModalTitle.textContent = `Partida ${match.round}`;
-                const homeTeam = getTeamById(match.homeTeamId);
-                const awayTeam = getTeamById(match.awayTeamId);
-                elements.matchHomeTeam.textContent = homeTeam?.name || 'Time 1';
-                elements.matchAwayTeam.textContent = awayTeam?.name || 'Time 2';
+                elements.matchHomeTeam.value = match.homeTeamId;
+                elements.matchAwayTeam.value = match.awayTeamId;
                 elements.matchHomeScore.value = match.homeScore || 0;
                 elements.matchAwayScore.value = match.awayScore || 0;
                 elements.matchHomeScorers.value = (match.homeScorers || []).join(', ');
@@ -857,10 +870,8 @@
                 elements.btnDeleteMatch.classList.remove('hidden');
             } else {
                 elements.matchModalTitle.textContent = 'Nova Partida';
-                const homeTeam = getTeamById(match?.homeTeamId) || currentTeams[0];
-                const awayTeam = getTeamById(match?.awayTeamId) || currentTeams[1];
-                elements.matchHomeTeam.textContent = homeTeam?.name || 'Time 1';
-                elements.matchAwayTeam.textContent = awayTeam?.name || 'Time 2';
+                if (currentTeams.length >= 1) elements.matchHomeTeam.value = currentTeams[0].id;
+                if (currentTeams.length >= 2) elements.matchAwayTeam.value = currentTeams[1].id;
                 elements.matchHomeScore.value = 0;
                 elements.matchAwayScore.value = 0;
                 elements.matchHomeScorers.value = '';
@@ -882,14 +893,23 @@
         function saveMatchFromModal(event) {
             event.preventDefault();
             const matchId = elements.matchModalId.value;
+            const homeTeamId = elements.matchHomeTeam.value;
+            const awayTeamId = elements.matchAwayTeam.value;
             const homeScore = parseInt(elements.matchHomeScore.value) || 0;
             const awayScore = parseInt(elements.matchAwayScore.value) || 0;
             const homeScorers = elements.matchHomeScorers.value.split(',').map(s => s.trim()).filter(Boolean);
             const awayScorers = elements.matchAwayScorers.value.split(',').map(s => s.trim()).filter(Boolean);
 
+            if (homeTeamId === awayTeamId) {
+                showToast('Escolha times diferentes', 'danger');
+                return;
+            }
+
             if (matchId) {
                 const match = findMatchById(matchId);
                 if (match) {
+                    match.homeTeamId = homeTeamId;
+                    match.awayTeamId = awayTeamId;
                     match.homeScore = homeScore;
                     match.awayScore = awayScore;
                     match.homeScorers = homeScorers;
@@ -905,8 +925,8 @@
                 const newMatch = {
                     id: idFactory(),
                     round: tournamentMatches.length + 1,
-                    homeTeamId: currentTeams[0].id,
-                    awayTeamId: currentTeams[1].id,
+                    homeTeamId,
+                    awayTeamId,
                     homeScore,
                     awayScore,
                     homeScorers,
