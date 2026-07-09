@@ -515,7 +515,7 @@
         const DEFAULT_PLAYER = { tech: 3, phys: 3, position: 'coringa' };
 
         let players = new Map();
-        let currentTeams = [];
+        let tournamentTeams = [];
         let tournamentMatches = [];
         let activeMatchId = null;
         let editingPlayerId = null;
@@ -684,7 +684,7 @@
         }
 
         function getTeamById(teamId) {
-            return currentTeams.find(t => t.id === teamId);
+            return tournamentTeams.find(t => t.id === teamId);
         }
 
         function showToast(message, tone = 'default') {
@@ -890,10 +890,16 @@
             editingMatchId = matchId;
             const match = matchId ? findMatchById(matchId) : null;
             
-            // Popula os selects de times
+            // Popula os selects de times - CORRIGIDO: permite qualquer quantidade de times
             elements.matchHomeTeam.innerHTML = '';
             elements.matchAwayTeam.innerHTML = '';
-            currentTeams.forEach(team => {
+            
+            if (tournamentTeams.length === 0) {
+                showToast('Nenhum time disponível', 'danger');
+                return;
+            }
+
+            tournamentTeams.forEach(team => {
                 const option1 = document.createElement('option');
                 option1.value = team.id;
                 option1.textContent = team.name;
@@ -916,8 +922,8 @@
                 elements.btnDeleteMatch.classList.remove('hidden');
             } else {
                 elements.matchModalTitle.textContent = 'Nova Partida';
-                if (currentTeams.length >= 1) elements.matchHomeTeam.value = currentTeams[0].id;
-                if (currentTeams.length >= 2) elements.matchAwayTeam.value = currentTeams[1].id;
+                if (tournamentTeams.length >= 1) elements.matchHomeTeam.value = tournamentTeams[0].id;
+                if (tournamentTeams.length >= 2) elements.matchAwayTeam.value = tournamentTeams[1].id;
                 elements.matchHomeScore.value = 0;
                 elements.matchAwayScore.value = 0;
                 elements.matchHomeScorers.value = '';
@@ -964,7 +970,7 @@
                     showToast('Partida atualizada', 'success');
                 }
             } else {
-                if (currentTeams.length < 2) {
+                if (tournamentTeams.length < 2) {
                     showToast('Necessário pelo menos 2 times', 'danger');
                     return;
                 }
@@ -1014,7 +1020,7 @@
         function renderTournament() {
             // Calcular tabela
             const standings = new Map();
-            currentTeams.forEach(team => {
+            tournamentTeams.forEach(team => {
                 standings.set(team.id, { 
                     name: team.name, 
                     pts: 0, 
@@ -1153,7 +1159,7 @@
             while (t1.length < size && available.length > 0) t1.push(available.shift());
             while (t2.length < size && available.length > 0) t2.push(available.shift());
 
-            currentTeams = [
+            tournamentTeams = [
                 { id: idFactory(), name: 'Time A', players: t1 },
                 { id: idFactory(), name: 'Time B', players: t2 }
             ];
@@ -1166,7 +1172,7 @@
             elements.resultsSummary.innerHTML = '';
             elements.resultsGrid.innerHTML = '';
 
-            currentTeams.forEach((team, idx) => {
+            tournamentTeams.forEach((team, idx) => {
                 // Cartão resumo
                 const card = document.createElement('div');
                 card.className = 'rounded-2xl border border-white/10 bg-black/30 p-3 text-center';
@@ -1194,8 +1200,8 @@
                 elements.resultsGrid.appendChild(grid);
             });
 
-            const avgT1 = currentTeams[0].players.reduce((sum, p) => sum + getPlayerScore(p), 0) / currentTeams[0].players.length;
-            const avgT2 = currentTeams[1].players.reduce((sum, p) => sum + getPlayerScore(p), 0) / currentTeams[1].players.length;
+            const avgT1 = tournamentTeams[0].players.reduce((sum, p) => sum + getPlayerScore(p), 0) / tournamentTeams[0].players.length;
+            const avgT2 = tournamentTeams[1].players.reduce((sum, p) => sum + getPlayerScore(p), 0) / tournamentTeams[1].players.length;
             const diff = (avgT1 - avgT2).toFixed(2);
             elements.resultsMeta.textContent = `Diferença: ${Math.abs(diff)} (Time ${diff > 0 ? 'A' : 'B'} é mais forte)`;
         }
@@ -1223,6 +1229,7 @@
         elements.btnRedraw.addEventListener('click', handleDraw);
         elements.btnOpenTournament.addEventListener('click', () => {
             tournamentMatches = [];
+            activeMatchId = null;
             renderTournament();
             switchScreen('screenTournament');
         });
@@ -1243,6 +1250,7 @@
         elements.btnResetTournament.addEventListener('click', () => {
             if (window.confirm('Limpar todas as partidas?')) {
                 tournamentMatches = [];
+                activeMatchId = null;
                 renderTournament();
                 showToast('Partidas limpas', 'success');
             }
@@ -1269,7 +1277,7 @@
                         players.set(normalizeName(p.name), p);
                     });
                 }
-                if (data.currentTeams) currentTeams = data.currentTeams;
+                if (data.tournamentTeams) tournamentTeams = data.tournamentTeams;
                 if (data.tournamentMatches) tournamentMatches = data.tournamentMatches;
                 syncUI();
             } catch (e) {
@@ -1280,7 +1288,7 @@
         function saveState() {
             const data = {
                 players: Array.from(players.values()),
-                currentTeams,
+                tournamentTeams,
                 tournamentMatches
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
