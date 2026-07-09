@@ -284,6 +284,11 @@
                         </label>
                         
                         <label>
+                            <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Quantidade de Times</span>
+                            <input type="number" id="teamCount" min="2" max="20" value="2" class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-xl font-bold text-arena-neon">
+                        </label>
+                        
+                        <label>
                             <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Tempo por partida (min)</span>
                             <input type="number" id="matchDuration" min="1" max="60" value="8" class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-xl font-bold text-cyan-300">
                         </label>
@@ -1121,51 +1126,59 @@
         }
 
         function handleDraw() {
-            if (players.size < clampTeamSize(elements.teamSize.value) * 2) {
+            const size = clampTeamSize(elements.teamSize.value);
+            const teamCount = parseInt(document.getElementById('teamCount').value) || 2;
+
+            if (players.size < size * teamCount) {
                 showToast('Jogadores insuficientes', 'danger');
                 return;
             }
 
             const roster = Array.from(players.values());
-            const size = clampTeamSize(elements.teamSize.value);
-            const topTwo = elements.ruleTopTwo.checked;
-            const spreadGK = elements.ruleGoalkeepers.checked;
+            const teams = [];
 
-            const sortByScore = (a, b) => getPlayerScore(b) - getPlayerScore(a);
-            let available = [...roster].sort(sortByScore);
-
-            const t1 = [], t2 = [];
-            
-            if (topTwo && available.length >= 2) {
-                const top = available.splice(0, 2);
-                t1.push(top[0]);
-                t2.push(top[1]);
+            for (let i = 0; i < teamCount; i++) {
+                teams.push({
+                    id: idFactory(),
+                    name: `Time ${String.fromCharCode(65 + i)}`,
+                    players: []
+                });
             }
 
-            if (spreadGK) {
-                const gks = available.filter(p => p.position === 'goleiro');
-                available = available.filter(p => p.position !== 'goleiro');
-                if (gks.length >= 2) {
-                    t1.push(gks[0]);
-                    t2.push(gks[1]);
-                    available = available.filter(p => !gks.includes(p));
-                } else if (gks.length === 1) {
-                    t1.push(gks[0]);
-                    available = available.filter(p => p !== gks[0]);
+            const available = [...roster].sort(
+                (a, b) => getPlayerScore(b) - getPlayerScore(a)
+            );
+
+            let direction = 1;
+            let currentTeam = 0;
+
+            while (available.length > 0) {
+                const player = available.shift();
+
+                if (teams[currentTeam].players.length < size) {
+                    teams[currentTeam].players.push(player);
                 }
+
+                currentTeam += direction;
+
+                if (currentTeam >= teamCount) {
+                    currentTeam = teamCount - 1;
+                    direction = -1;
+                }
+
+                if (currentTeam < 0) {
+                    currentTeam = 0;
+                    direction = 1;
+                }
+
+                if (teams.every(t => t.players.length >= size)) break;
             }
 
-            available.sort(() => Math.random() - 0.5);
-            while (t1.length < size && available.length > 0) t1.push(available.shift());
-            while (t2.length < size && available.length > 0) t2.push(available.shift());
-
-            tournamentTeams = [
-                { id: idFactory(), name: 'Time A', players: t1 },
-                { id: idFactory(), name: 'Time B', players: t2 }
-            ];
+            tournamentTeams = teams;
 
             renderResults();
             switchScreen('screenResults');
+            saveState();
         }
 
         function renderResults() {
@@ -1200,10 +1213,15 @@
                 elements.resultsGrid.appendChild(grid);
             });
 
-            const avgT1 = tournamentTeams[0].players.reduce((sum, p) => sum + getPlayerScore(p), 0) / tournamentTeams[0].players.length;
-            const avgT2 = tournamentTeams[1].players.reduce((sum, p) => sum + getPlayerScore(p), 0) / tournamentTeams[1].players.length;
-            const diff = (avgT1 - avgT2).toFixed(2);
-            elements.resultsMeta.textContent = `Diferença: ${Math.abs(diff)} (Time ${diff > 0 ? 'A' : 'B'} é mais forte)`;
+            const teamAverages = tournamentTeams.map(team =>
+                team.players.reduce((sum, p) => sum + getPlayerScore(p), 0) / team.players.length
+            );
+
+            const strongest = Math.max(...teamAverages);
+            const weakest = Math.min(...teamAverages);
+
+            elements.resultsMeta.textContent =
+                `${tournamentTeams.length} times gerados • Diferença média ${(strongest - weakest).toFixed(2)}`;
         }
 
         // EVENT LISTENERS
