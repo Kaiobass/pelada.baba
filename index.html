@@ -55,32 +55,65 @@
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 26px 26px;
         }
-        .star {
-            font-size: 1.35rem;
-            cursor: pointer;
-            position: relative;
-            display: inline-block;
-            color: #3d4553;
-            transition: transform 0.12s ease;
+        
+        /* STARS RATING */
+        .stars-container {
+            display: flex;
+            gap: 0.35rem;
             user-select: none;
         }
-        .star:hover, .star:focus-visible {
-            transform: scale(1.14);
-            outline: none;
+        
+        .star {
+            font-size: 1.75rem;
+            cursor: pointer;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            color: #3d4553;
+            transition: transform 0.15s ease, filter 0.15s ease;
+            flex-shrink: 0;
         }
+        
+        .star:hover {
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 8px rgba(223, 255, 0, 0.3));
+        }
+        
         .star-full {
             color: #dfff00;
             text-shadow: 0 0 10px rgba(223, 255, 0, 0.42);
         }
+        
+        .star-half {
+            position: relative;
+            color: #3d4553;
+        }
+        
         .star-half::before {
-            content: '\2605';
+            content: '★';
             position: absolute;
-            inset: 0 auto 0 0;
+            inset: 0;
             width: 50%;
             overflow: hidden;
             color: #dfff00;
             text-shadow: 0 0 10px rgba(223, 255, 0, 0.42);
+            display: flex;
+            align-items: center;
         }
+        
+        .star-label {
+            font-size: 0.75rem;
+            color: #dfff00;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(223, 255, 0, 0.42);
+            margin-top: 0.5rem;
+            text-align: center;
+            min-width: 2.5rem;
+        }
+        
         .mobile-scroll { -webkit-overflow-scrolling: touch; }
         
         /* NAVEGAÇÃO */
@@ -186,14 +219,13 @@
                         <h2 class="font-display text-2xl uppercase italic tracking-tight">📋 Elenco</h2>
                         <span id="counter" class="rounded-full border border-arena-neon/30 bg-arena-neon/10 px-3 py-1 text-sm font-bold text-arena-neon">0</span>
                     </div>
-                    <p class="text-sm text-white/60 mb-4">Importe jogadores ou carregue a demo</p>
+                    <p class="text-sm text-white/60 mb-4">Importe jogadores em lote, um nome por linha</p>
                     
                     <!-- IMPORT -->
-                    <textarea id="bulkList" rows="5" placeholder="Cole nomes, um por linha..." class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-sm text-white mb-3 outline-none focus:border-arena-neon/45 focus:ring-2 focus:ring-arena-neon/20"></textarea>
+                    <textarea id="bulkList" rows="5" placeholder="Cole nomes, um por linha..." class="w-full rounded-2xl border border-white/10 bg-black/40 p-3 text-sm text-white mb-3 outline-none focus:border-cyan-400/50"></textarea>
                     
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="btnImport" class="rounded-2xl bg-arena-neon px-4 py-3 font-bold text-sm uppercase text-black transition hover:bg-white">Importar</button>
-                        <button id="btnDemo" class="rounded-2xl border border-white/20 px-4 py-3 text-sm font-bold uppercase text-white/80 transition hover:border-white">Demo 10</button>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button id="btnImport" class="rounded-2xl bg-arena-neon px-4 py-3 font-bold text-sm uppercase text-black transition hover:bg-white">Importar Jogadores</button>
                     </div>
                 </div>
 
@@ -245,7 +277,7 @@
                         </label>
                     </div>
 
-                    <button id="btnDraw" class="w-full rounded-2xl bg-cyan-500 py-4 font-display text-lg uppercase tracking-wide text-white transition hover:bg-cyan-400 disabled:opacity-50">🎲 Sortear</button>
+                    <button id="btnDraw" class="w-full rounded-2xl bg-cyan-500 py-4 font-display text-lg uppercase tracking-wide text-white transition hover:bg-cyan-400 disabled:opacity-50">🎲 Sortear Times</button>
                 </div>
             </div>
         </section>
@@ -333,7 +365,7 @@
                 <button id="btnCloseModal" class="rounded-full border border-white/10 px-3 py-2 text-xs font-bold uppercase text-white/70 hover:border-white flex-shrink-0">✕</button>
             </div>
             
-            <form id="playerForm" class="space-y-4 max-h-96 overflow-y-auto pr-3">
+            <form id="playerForm" class="space-y-5 max-h-96 overflow-y-auto pr-3">
                 <input type="hidden" id="modalPlayerId">
                 
                 <label>
@@ -346,18 +378,24 @@
                     <select id="modalPlayerPosition" class="w-full rounded-2xl border border-white/10 bg-black/35 p-3 text-white outline-none focus:border-cyan-400/50"></select>
                 </label>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <label>
-                        <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Técnica</span>
-                        <input id="modalPlayerTech" type="range" min="0.5" max="5" step="0.5" class="w-full accent-lime-300">
-                        <span id="modalTechValue" class="text-xs text-white/75 block mt-1 text-center">3.0</span>
-                    </label>
+                <!-- TÉCNICA COM STARS -->
+                <div>
+                    <span class="text-xs font-bold uppercase text-white/45 mb-3 block">Técnica</span>
+                    <div class="flex flex-col items-center justify-center gap-2">
+                        <div class="stars-container" id="starsContainerTech"></div>
+                        <div class="star-label" id="labelTech">3.0 ⭐</div>
+                    </div>
+                    <input type="hidden" id="modalPlayerTech" value="3">
+                </div>
 
-                    <label>
-                        <span class="text-xs font-bold uppercase text-white/45 mb-2 block">Físico</span>
-                        <input id="modalPlayerPhys" type="range" min="0.5" max="5" step="0.5" class="w-full accent-cyan-300">
-                        <span id="modalPhysValue" class="text-xs text-white/75 block mt-1 text-center">3.0</span>
-                    </label>
+                <!-- FÍSICO COM STARS -->
+                <div>
+                    <span class="text-xs font-bold uppercase text-white/45 mb-3 block">Físico</span>
+                    <div class="flex flex-col items-center justify-center gap-2">
+                        <div class="stars-container" id="starsContainerPhys"></div>
+                        <div class="star-label" id="labelPhys">3.0 ⭐</div>
+                    </div>
+                    <input type="hidden" id="modalPlayerPhys" value="3">
                 </div>
 
                 <div class="pt-6 border-t border-white/10 flex gap-3">
@@ -432,7 +470,7 @@
     <div id="toast" class="pointer-events-none fixed right-3 top-3 z-50 rounded-2xl border border-white/10 bg-arena-panel/95 px-4 py-3 text-sm text-white opacity-0 shadow-arena transition-all"></div>
 
     <script>
-        const STORAGE_KEY = 'fut-desastre-v6';
+        const STORAGE_KEY = 'fut-desastre-v7';
         const POSITION_OPTIONS = [
             { value: 'goleiro', label: 'Goleiro', short: 'GK' },
             { value: 'defesa', label: 'Defesa', short: 'DEF' },
@@ -441,18 +479,6 @@
             { value: 'coringa', label: 'Coringa', short: 'ALL' }
         ];
         const DEFAULT_PLAYER = { tech: 3, phys: 3, position: 'coringa' };
-        const DEMO_PLAYERS = [
-            { name: 'Kaio', position: 'goleiro', tech: 3, phys: 3.5 },
-            { name: 'Pedro', position: 'defesa', tech: 3.5, phys: 4 },
-            { name: 'Joao', position: 'meia', tech: 4, phys: 3.5 },
-            { name: 'Leo', position: 'ataque', tech: 4.5, phys: 3 },
-            { name: 'Rafa', position: 'coringa', tech: 3, phys: 3 },
-            { name: 'Bruno', position: 'defesa', tech: 2.5, phys: 4 },
-            { name: 'Vitor', position: 'goleiro', tech: 2.5, phys: 3 },
-            { name: 'Davi', position: 'meia', tech: 3.5, phys: 3 },
-            { name: 'Igor', position: 'ataque', tech: 4, phys: 4 },
-            { name: 'Breno', position: 'coringa', tech: 3, phys: 3.5 }
-        ];
 
         let players = new Map();
         let currentTeams = [];
@@ -473,7 +499,6 @@
             // Roster
             bulkList: document.getElementById('bulkList'),
             btnImport: document.getElementById('btnImport'),
-            btnDemo: document.getElementById('btnDemo'),
             btnAddPlayer: document.getElementById('btnAddPlayer'),
             counter: document.getElementById('counter'),
             listContainer: document.getElementById('listContainer'),
@@ -508,8 +533,10 @@
             modalPlayerPosition: document.getElementById('modalPlayerPosition'),
             modalPlayerTech: document.getElementById('modalPlayerTech'),
             modalPlayerPhys: document.getElementById('modalPlayerPhys'),
-            modalTechValue: document.getElementById('modalTechValue'),
-            modalPhysValue: document.getElementById('modalPhysValue'),
+            labelTech: document.getElementById('labelTech'),
+            labelPhys: document.getElementById('labelPhys'),
+            starsContainerTech: document.getElementById('starsContainerTech'),
+            starsContainerPhys: document.getElementById('starsContainerPhys'),
             btnDeleteFromModal: document.getElementById('btnDeleteFromModal'),
             playerForm: document.getElementById('playerForm'),
             // Modal Partida
@@ -528,6 +555,68 @@
             // Toast
             toast: document.getElementById('toast')
         };
+
+        // STAR RATING COMPONENT
+        function createStarRating(containerId, initialValue, onChangeCallback) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Criar 5 estrelas (10 half-stars = 5 completas)
+            for (let i = 0.5; i <= 5; i += 0.5) {
+                const star = document.createElement('button');
+                star.type = 'button';
+                star.className = 'star';
+                star.dataset.value = i;
+                star.textContent = '★';
+                
+                // Event listener para clique
+                star.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const value = parseFloat(star.dataset.value);
+                    onChangeCallback(value);
+                    updateStarDisplay(container, value);
+                });
+                
+                // Event listener para hover
+                star.addEventListener('mouseenter', () => {
+                    const value = parseFloat(star.dataset.value);
+                    updateStarDisplay(container, value, true);
+                });
+                
+                star.addEventListener('mouseleave', () => {
+                    updateStarDisplay(container, initialValue);
+                });
+                
+                // Suporte a touch em mobile
+                star.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const value = parseFloat(star.dataset.value);
+                    onChangeCallback(value);
+                    updateStarDisplay(container, value);
+                });
+                
+                container.appendChild(star);
+            }
+            
+            // Renderizar valor inicial
+            updateStarDisplay(container, initialValue);
+        }
+
+        function updateStarDisplay(container, value, isHover = false) {
+            const stars = container.querySelectorAll('.star');
+            stars.forEach(star => {
+                const starValue = parseFloat(star.dataset.value);
+                star.classList.remove('star-full', 'star-half');
+                
+                if (starValue <= value) {
+                    star.classList.add('star-full');
+                } else if (starValue - 0.5 < value && value < starValue) {
+                    star.classList.add('star-half');
+                }
+            });
+        }
 
         function idFactory() {
             return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -596,7 +685,9 @@
                 name,
                 tech: clampRate(overrides.tech ?? DEFAULT_PLAYER.tech),
                 phys: clampRate(overrides.phys ?? DEFAULT_PLAYER.phys),
-                position: overrides.position || DEFAULT_PLAYER.position
+                position: overrides.position || DEFAULT_PLAYER.position,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
         }
 
@@ -665,10 +756,27 @@
             elements.modalPlayerId.value = player?.id || '';
             elements.modalPlayerName.value = player?.name || '';
             elements.modalPlayerPosition.value = player?.position || DEFAULT_PLAYER.position;
-            elements.modalPlayerTech.value = player?.tech || DEFAULT_PLAYER.tech;
-            elements.modalPlayerPhys.value = player?.phys || DEFAULT_PLAYER.phys;
-            elements.modalTechValue.textContent = Number(elements.modalPlayerTech.value).toFixed(1);
-            elements.modalPhysValue.textContent = Number(elements.modalPlayerPhys.value).toFixed(1);
+            
+            const techValue = player?.tech || DEFAULT_PLAYER.tech;
+            const physValue = player?.phys || DEFAULT_PLAYER.phys;
+            
+            elements.modalPlayerTech.value = techValue;
+            elements.modalPlayerPhys.value = physValue;
+            
+            // Renderizar stars
+            createStarRating('starsContainerTech', techValue, (value) => {
+                elements.modalPlayerTech.value = value;
+                elements.labelTech.textContent = `${value.toFixed(1)} ⭐`;
+            });
+            
+            createStarRating('starsContainerPhys', physValue, (value) => {
+                elements.modalPlayerPhys.value = value;
+                elements.labelPhys.textContent = `${value.toFixed(1)} ⭐`;
+            });
+            
+            elements.labelTech.textContent = `${techValue.toFixed(1)} ⭐`;
+            elements.labelPhys.textContent = `${physValue.toFixed(1)} ⭐`;
+            
             elements.btnDeleteFromModal.classList.toggle('hidden', !player);
             elements.playerModal.classList.remove('hidden');
             elements.playerModal.classList.add('flex');
@@ -706,7 +814,7 @@
                     return;
                 }
                 players.delete(oldKey);
-                Object.assign(existing, payload);
+                Object.assign(existing, payload, { updatedAt: new Date().toISOString() });
                 players.set(key, existing);
                 showToast('Jogador atualizado', 'success');
             } else {
@@ -834,15 +942,6 @@
             }
             syncUI();
             showToast(`${imported} jogador(es) importado(s)`, 'success');
-        }
-
-        function fillDemoPlayers() {
-            let imported = 0;
-            DEMO_PLAYERS.forEach(p => {
-                if (addPlayer(p.name, p)) imported += 1;
-            });
-            syncUI();
-            showToast(imported ? 'Demo carregada' : 'Demo já estava carregada', imported ? 'success' : 'default');
         }
 
         function validateTeamSize() {
@@ -999,11 +1098,11 @@
                             <p class="text-xs text-white/60">Partida ${match.round}</p>
                         </div>
                         <div class="text-center">
-                            <p class="font-bold text-lg text-arena-neon">${match.homeScore} x ${match.awayScore}</p>
+                            <p class="font-bold text-arena-neon text-lg">${match.homeScore} x ${match.awayScore}</p>
                         </div>
                         <div class="text-left">
                             <p class="font-bold text-white text-sm">${awayTeam?.name || 'Time 2'}</p>
-                            <p class="text-xs text-white/60">Editar</p>
+                            <p class="text-xs text-white/60">Partida ${match.round}</p>
                         </div>
                     </div>
                 `;
@@ -1011,70 +1110,89 @@
                 elements.matchWorkspace.appendChild(matchCard);
             });
 
-            // Standings
-            if (currentTeams.length > 0) {
-                const standings = currentTeams.map(team => {
-                    const teamMatches = tournamentMatches.filter(m => m.homeTeamId === team.id || m.awayTeamId === team.id);
-                    let pts = 0, played = 0, wins = 0;
+            // Calcular standing
+            const standings = {};
+            currentTeams.forEach(team => {
+                standings[team.id] = { name: team.name, pts: 0, j: 0, v: 0 };
+            });
 
-                    teamMatches.forEach(match => {
-                        const isHome = match.homeTeamId === team.id;
-                        const teamScore = isHome ? match.homeScore : match.awayScore;
-                        const oppScore = isHome ? match.awayScore : match.homeScore;
-                        
-                        played++;
-                        if (teamScore > oppScore) {
-                            pts += 3;
-                            wins++;
-                        } else if (teamScore === oppScore) {
-                            pts += 1;
-                        }
-                    });
+            tournamentMatches.forEach(match => {
+                if (standings[match.homeTeamId]) {
+                    standings[match.homeTeamId].j += 1;
+                    if (match.homeScore > match.awayScore) {
+                        standings[match.homeTeamId].pts += 3;
+                        standings[match.homeTeamId].v += 1;
+                    } else if (match.homeScore === match.awayScore) {
+                        standings[match.homeTeamId].pts += 1;
+                    }
+                }
+                if (standings[match.awayTeamId]) {
+                    standings[match.awayTeamId].j += 1;
+                    if (match.awayScore > match.homeScore) {
+                        standings[match.awayTeamId].pts += 3;
+                        standings[match.awayTeamId].v += 1;
+                    } else if (match.awayScore === match.homeScore) {
+                        standings[match.awayTeamId].pts += 1;
+                    }
+                }
+            });
 
-                    return { team, pts, played, wins };
-                }).sort((a, b) => b.pts - a.pts);
-
-                standings.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b border-white/10 hover:bg-white/5';
-                    tr.innerHTML = `
-                        <td class="py-2 pr-3 font-bold text-white">${row.team.name}</td>
-                        <td class="py-2 pr-3 text-white/75">${row.pts}</td>
-                        <td class="py-2 pr-3 text-white/75">${row.played}</td>
-                        <td class="py-2 pr-3 text-white/75">${row.wins}</td>
+            // Render standing
+            Object.values(standings)
+                .sort((a, b) => b.pts - a.pts)
+                .forEach(team => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="pb-3 pr-3">${team.name}</td>
+                        <td class="pb-3 pr-3">${team.pts}</td>
+                        <td class="pb-3 pr-3">${team.j}</td>
+                        <td class="pb-3 pr-3">${team.v}</td>
                     `;
-                    elements.standingsBody.appendChild(tr);
+                    elements.standingsBody.appendChild(row);
                 });
-            }
 
-            // Scorers
+            // Artilharia
             const scorers = {};
             tournamentMatches.forEach(match => {
-                [...(match.homeScorers || []), ...(match.awayScorers || [])].forEach(scorer => {
-                    scorers[scorer] = (scorers[scorer] || 0) + 1;
+                match.homeScorers?.forEach(name => {
+                    scorers[name] = (scorers[name] || 0) + 1;
+                });
+                match.awayScorers?.forEach(name => {
+                    scorers[name] = (scorers[name] || 0) + 1;
                 });
             });
 
             Object.entries(scorers)
                 .sort((a, b) => b[1] - a[1])
                 .forEach(([name, goals]) => {
-                    const item = document.createElement('div');
-                    item.className = 'flex items-center justify-between p-2 rounded-lg bg-black/25';
-                    item.innerHTML = `
-                        <span class="text-white">${name}</span>
-                        <span class="font-bold text-arena-neon">${goals}⚽</span>
-                    `;
-                    elements.scorersList.appendChild(item);
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between';
+                    div.innerHTML = `<span>${name}</span><span class="font-bold text-arena-neon">${goals}</span>`;
+                    elements.scorersList.appendChild(div);
                 });
 
-            if (!Object.keys(scorers).length) {
-                elements.scorersList.innerHTML = '<div class="text-center py-4 text-white/40">Nenhum gol marcado ainda</div>';
-            }
+            saveState();
         }
 
-        function handleDraw() {
+        // EVENT LISTENERS
+        elements.btnImport.addEventListener('click', handleImport);
+        elements.btnAddPlayer.addEventListener('click', () => openPlayerModal());
+        elements.btnCloseModal.addEventListener('click', closePlayerModal);
+        elements.btnDeleteFromModal.addEventListener('click', () => {
+            if (editingPlayerId) removePlayer(editingPlayerId);
+        });
+        elements.playerForm.addEventListener('submit', savePlayerFromModal);
+
+        elements.navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const screenId = tab.dataset.screen;
+                switchScreen(screenId);
+            });
+        });
+
+        elements.btnDraw.addEventListener('click', () => {
             const size = validateTeamSize();
-            if (!size || players.size < size) return;
+            if (!size || players.size === 0) return;
 
             const roster = Array.from(players.values()).map(p => ({
                 ...p,
@@ -1089,114 +1207,87 @@
             currentTeams = buildBalancedTeams(roster, size, rules);
             tournamentMatches = [];
             renderResults(currentTeams);
-            showToast(`${currentTeams.length} times sorteados! ⚖️`, 'success');
-        }
-
-        function saveState() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                players: Array.from(players.values()),
-                currentTeams,
-                tournamentMatches,
-                teamSize: clampTeamSize(Number(elements.teamSize.value)),
-                matchDuration: Number(elements.matchDuration.value),
-                rules: {
-                    separateTopTwo: elements.ruleTopTwo.checked,
-                    spreadGoalkeepers: elements.ruleGoalkeepers.checked
-                }
-            }));
-        }
-
-        function loadState() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                populatePositionOptions();
-                syncUI();
-                return;
-            }
-
-            try {
-                const saved = JSON.parse(raw);
-                players = new Map((saved.players || []).map(p => [normalizeName(p.name), p]));
-                currentTeams = saved.currentTeams || [];
-                tournamentMatches = saved.tournamentMatches || [];
-                elements.teamSize.value = clampTeamSize(saved.teamSize || 5);
-                elements.matchDuration.value = saved.matchDuration || 8;
-                elements.ruleTopTwo.checked = saved.rules?.separateTopTwo ?? true;
-                elements.ruleGoalkeepers.checked = saved.rules?.spreadGoalkeepers ?? true;
-            } catch (e) {
-                console.error('Erro ao carregar:', e);
-            }
-
-            populatePositionOptions();
-            syncUI();
-        }
-
-        function populatePositionOptions() {
-            elements.modalPlayerPosition.innerHTML = POSITION_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
-        }
-
-        // EVENT LISTENERS
-        elements.navTabs.forEach(tab => {
-            tab.addEventListener('click', () => switchScreen(tab.dataset.screen));
         });
 
-        elements.btnImport.addEventListener('click', handleImport);
-        elements.btnDemo.addEventListener('click', fillDemoPlayers);
-        elements.btnAddPlayer.addEventListener('click', () => openPlayerModal());
-        elements.btnDraw.addEventListener('click', handleDraw);
-        elements.btnRedraw.addEventListener('click', () => switchScreen('screenSort'));
+        elements.btnRedraw.addEventListener('click', () => {
+            if (players.size === 0) return;
+            elements.btnDraw.click();
+        });
+
         elements.btnOpenTournament.addEventListener('click', () => {
-            renderTournament();
             switchScreen('screenTournament');
+            renderTournament();
         });
-        elements.btnBackToResults.addEventListener('click', () => switchScreen('screenResults'));
+
         elements.btnAddMatch.addEventListener('click', () => openMatchModal());
+        elements.btnCloseMatchModal.addEventListener('click', closeMatchModal);
+        elements.btnDeleteMatch.addEventListener('click', () => {
+            if (editingMatchId) deleteMatch(editingMatchId);
+        });
+        elements.matchForm.addEventListener('submit', saveMatchFromModal);
         elements.btnResetTournament.addEventListener('click', () => {
             if (window.confirm('Limpar todas as partidas?')) {
                 tournamentMatches = [];
                 renderTournament();
                 saveState();
-                showToast('Partidas limpas', 'success');
+            }
+        });
+        elements.btnBackToResults.addEventListener('click', () => switchScreen('screenResults'));
+
+        // Event delegation para player actions
+        elements.listContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+
+            const action = btn.dataset.action;
+            const playerId = btn.dataset.playerId;
+
+            if (action === 'edit') {
+                openPlayerModal(playerId);
+            } else if (action === 'remove') {
+                removePlayer(playerId);
             }
         });
 
-        elements.playerForm.addEventListener('submit', savePlayerFromModal);
-        elements.btnCloseModal.addEventListener('click', closePlayerModal);
-        elements.btnDeleteFromModal.addEventListener('click', () => {
-            const playerId = elements.modalPlayerId.value;
-            if (playerId) removePlayer(playerId);
-        });
+        // Populate position select in modal
+        function populatePositionSelect() {
+            elements.modalPlayerPosition.innerHTML = '';
+            POSITION_OPTIONS.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.label;
+                elements.modalPlayerPosition.appendChild(option);
+            });
+        }
 
-        elements.matchForm.addEventListener('submit', saveMatchFromModal);
-        elements.btnCloseMatchModal.addEventListener('click', closeMatchModal);
-        elements.btnDeleteMatch.addEventListener('click', () => {
-            const matchId = elements.matchModalId.value;
-            if (matchId) deleteMatch(matchId);
-        });
+        // STATE MANAGEMENT
+        function saveState() {
+            const state = {
+                players: Array.from(players.entries()),
+                currentTeams,
+                tournamentMatches
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
 
-        elements.modalPlayerTech.addEventListener('input', e => {
-            elements.modalTechValue.textContent = Number(e.target.value).toFixed(1);
-        });
+        function loadState() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return;
 
-        elements.modalPlayerPhys.addEventListener('input', e => {
-            elements.modalPhysValue.textContent = Number(e.target.value).toFixed(1);
-        });
-
-        elements.teamSize.addEventListener('input', updateSummary);
-        elements.ruleTopTwo.addEventListener('change', saveState);
-        elements.ruleGoalkeepers.addEventListener('change', saveState);
-
-        elements.listContainer.addEventListener('click', e => {
-            if (e.target.dataset.action === 'edit') {
-                openPlayerModal(e.target.dataset.playerId);
-            } else if (e.target.dataset.action === 'remove') {
-                removePlayer(e.target.dataset.playerId);
+            try {
+                const state = JSON.parse(saved);
+                players = new Map(state.players);
+                currentTeams = state.currentTeams || [];
+                tournamentMatches = state.tournamentMatches || [];
+            } catch (e) {
+                console.error('Erro ao carregar estado:', e);
             }
-        });
+        }
 
         // INIT
+        populatePositionSelect();
         loadState();
-        console.log('✅ FUT-DESASTRE iniciado');
+        syncUI();
     </script>
 </body>
 </html>
