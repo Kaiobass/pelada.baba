@@ -306,7 +306,7 @@
                         </label>
                     </div>
 
-                    <button id="btnDraw" class="w-full rounded-2xl bg-cyan-500 py-4 font-display text-lg uppercase tracking-wide text-white transition hover:bg-cyan-400 disabled:opacity-50">🎲 Sortear Times</button>
+                    <button id="btnDraw" class="w-full rounded-2xl bg-cyan-500 py-4 font-display text-lg uppercase tracking-wide text-white transition hover:bg-cyan-400 disabled:opacity-50">🎲 Sortear</button>
                 </div>
             </div>
         </section>
@@ -366,12 +366,6 @@
                             <tbody id="standingsBody" class="text-white/80"></tbody>
                         </table>
                     </div>
-                </div>
-
-                <!-- ARTILHARIA -->
-                <div class="rounded-[28px] border border-white/10 bg-arena-panel p-4 shadow-arena">
-                    <h3 class="font-display text-lg uppercase italic mb-4">🎯 Artilharia</h3>
-                    <div id="scorersList" class="space-y-2 text-sm text-white/75"></div>
                 </div>
 
                 <!-- BOTÕES AÇÃO -->
@@ -434,12 +428,12 @@
         </div>
     </div>
 
-    <!-- MODAL EDITAR PARTIDA - COMPACTO -->
+    <!-- MODAL EDITAR PARTIDA - COMPACTO E PRÁTICO -->
     <div id="matchModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/75 p-3 overflow-y-auto">
         <div class="w-full max-w-sm rounded-[24px] border border-white/10 bg-arena-panel shadow-arena modal-dialog">
             <div class="modal-header">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-display text-xl uppercase italic text-white" id="matchModalTitle">Editar Partida</h3>
+                    <h3 class="font-display text-lg uppercase italic text-white" id="matchModalTitle">Editar Partida</h3>
                     <button id="btnCloseMatchModal" class="rounded-full border border-white/10 px-2 py-1 text-xs font-bold text-white/70 hover:border-white flex-shrink-0">✕</button>
                 </div>
             </div>
@@ -447,37 +441,49 @@
             <form id="matchForm" class="modal-body space-y-3">
                 <input type="hidden" id="matchModalId">
                 
-                <label class="block">
-                    <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Time 1</span>
-                    <select id="matchHomeTeam" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/50"></select>
-                </label>
-
-                <div class="flex gap-2 items-end">
-                    <label class="flex-1">
-                        <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Gols Time 1</span>
-                        <input id="matchHomeScore" type="number" min="0" max="99" value="0" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-center text-sm font-bold text-white">
+                <!-- TIMES E PLACAR -->
+                <div class="space-y-2">
+                    <label class="block">
+                        <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Time 1</span>
+                        <select id="matchHomeTeam" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/50"></select>
                     </label>
-                    <span class="text-white font-bold mb-2">×</span>
-                    <label class="flex-1">
-                        <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Gols Time 2</span>
-                        <input id="matchAwayScore" type="number" min="0" max="99" value="0" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-center text-sm font-bold text-white">
+
+                    <div class="grid grid-cols-3 gap-2 items-end">
+                        <label class="block">
+                            <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Gols</span>
+                            <input id="matchHomeScore" type="number" min="0" max="99" value="0" class="w-full rounded-lg border border-white/10 bg-black/35 px-2 py-2 text-center text-sm font-bold text-arena-neon outline-none focus:border-cyan-400/50">
+                        </label>
+                        <div class="text-center text-white font-bold pb-1">×</div>
+                        <label class="block">
+                            <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Gols</span>
+                            <input id="matchAwayScore" type="number" min="0" max="99" value="0" class="w-full rounded-lg border border-white/10 bg-black/35 px-2 py-2 text-center text-sm font-bold text-arena-neon outline-none focus:border-cyan-400/50">
+                        </label>
+                    </div>
+
+                    <label class="block">
+                        <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Time 2</span>
+                        <select id="matchAwayTeam" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/50"></select>
                     </label>
                 </div>
 
-                <label class="block">
-                    <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Time 2</span>
-                    <select id="matchAwayTeam" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/50"></select>
-                </label>
+                <!-- RESULTADO (RESUMIDO) -->
+                <div class="text-center py-2 px-3 bg-black/40 rounded-lg border border-white/10">
+                    <p class="text-xs text-white/60 mb-1">Resultado</p>
+                    <p id="matchResultDisplay" class="text-lg font-bold text-arena-neon">0 × 0</p>
+                </div>
 
-                <label class="block">
-                    <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Gols Time 1 (nomes)</span>
-                    <textarea id="matchHomeScorers" rows="2" placeholder="João, Pedro" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs text-white outline-none focus:border-cyan-400/50"></textarea>
-                </label>
+                <!-- ARTILHEIROS (OPCIONAL) -->
+                <div class="space-y-2">
+                    <label class="block">
+                        <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Gols Time 1 (nomes)</span>
+                        <input id="matchHomeScorers" type="text" placeholder="João, Pedro, Ana" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs text-white outline-none focus:border-cyan-400/50">
+                    </label>
 
-                <label class="block">
-                    <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Gols Time 2 (nomes)</span>
-                    <textarea id="matchAwayScorers" rows="2" placeholder="Bruno, Vitor" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs text-white outline-none focus:border-cyan-400/50"></textarea>
-                </label>
+                    <label class="block">
+                        <span class="text-xs font-bold uppercase text-white/45 mb-1 block">Gols Time 2 (nomes)</span>
+                        <input id="matchAwayScorers" type="text" placeholder="Bruno, Vitor, Leo" class="w-full rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs text-white outline-none focus:border-cyan-400/50">
+                    </label>
+                </div>
             </form>
 
             <div class="modal-footer">
@@ -548,7 +554,6 @@
             matchTabs: document.getElementById('matchTabs'),
             matchWorkspace: document.getElementById('matchWorkspace'),
             standingsBody: document.getElementById('standingsBody'),
-            scorersList: document.getElementById('scorersList'),
             btnAddMatch: document.getElementById('btnAddMatch'),
             btnResetTournament: document.getElementById('btnResetTournament'),
             btnBackToResults: document.getElementById('btnBackToResults'),
@@ -579,6 +584,7 @@
             matchAwayScore: document.getElementById('matchAwayScore'),
             matchHomeScorers: document.getElementById('matchHomeScorers'),
             matchAwayScorers: document.getElementById('matchAwayScorers'),
+            matchResultDisplay: document.getElementById('matchResultDisplay'),
             btnDeleteMatch: document.getElementById('btnDeleteMatch'),
             btnSaveMatch: document.getElementById('btnSaveMatch'),
             matchForm: document.getElementById('matchForm'),
@@ -773,7 +779,7 @@
                         </div>
                         <div class="flex gap-2 flex-shrink-0">
                             <button type="button" data-action="edit" data-player-id="${player.id}" class="rounded-full border border-white/10 px-3 py-2 text-xs font-bold text-white/70 hover:border-white">✏️</button>
-                            <button type="button" data-action="remove" data-player-id="${player.id}" class="rounded-full border border-red-400/30 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/20">🗑️</button>
+                            <button type="button" data-action="remove" data-player-id="${player.id}" class="rounded-full border border-red-400/30 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/20">✕</button>
                         </div>
                     </div>
                 `;
@@ -874,6 +880,12 @@
             showToast('Jogador removido', 'success');
         }
 
+        function updateMatchResultDisplay() {
+            const homeScore = parseInt(elements.matchHomeScore.value) || 0;
+            const awayScore = parseInt(elements.matchAwayScore.value) || 0;
+            elements.matchResultDisplay.textContent = `${homeScore} × ${awayScore}`;
+        }
+
         function openMatchModal(matchId = null) {
             editingMatchId = matchId;
             const match = matchId ? findMatchById(matchId) : null;
@@ -914,6 +926,7 @@
             }
             
             elements.matchModalId.value = match?.id || '';
+            updateMatchResultDisplay();
             elements.matchModal.classList.remove('hidden');
             elements.matchModal.classList.add('flex');
         }
@@ -998,350 +1011,282 @@
             showToast(`${imported} jogador(es) importado(s)`, 'success');
         }
 
-        function validateTeamSize() {
-            const size = clampTeamSize(Number(elements.teamSize.value));
-            elements.teamSize.value = size;
-            if (players.size < size) {
-                showToast('Tamanho do time maior que jogadores', 'danger');
-                return null;
-            }
-            return size;
-        }
-
-        function countPosition(team, position) {
-            return team.players.filter(p => p.position === position).length;
-        }
-
-        function chooseTeamForPlayer(teams, player, maxPlayers) {
-            const available = teams.filter(t => t.players.length < maxPlayers);
-            available.sort((a, b) => {
-                if (a.players.length !== b.players.length) return a.players.length - b.players.length;
-                if (countPosition(a, player.position) !== countPosition(b, player.position)) {
-                    return countPosition(a, player.position) - countPosition(b, player.position);
-                }
-                return a.totalScore - b.totalScore;
-            });
-            return available[0];
-        }
-
-        function buildBalancedTeams(roster, size, rules) {
-            const totalTeams = Math.ceil(roster.length / size);
-            const teams = Array.from({ length: totalTeams }, (_, i) => ({
-                id: `team-${i + 1}`,
-                name: `Time ${i + 1}`,
-                players: [],
-                totalScore: 0
-            }));
-
-            const sortedRoster = [...roster].sort(() => Math.random() - 0.5).sort((a, b) => b.score - a.score);
-
-            if (rules.separateTopTwo && sortedRoster.length >= 2 && teams.length >= 2) {
-                const first = sortedRoster.shift();
-                const second = sortedRoster.shift();
-                teams[0].players.push(first);
-                teams[0].totalScore += first.score;
-                teams[1].players.push(second);
-                teams[1].totalScore += second.score;
-            }
-
-            if (rules.spreadGoalkeepers) {
-                const goalkeepers = sortedRoster.filter(p => p.position === 'goleiro');
-                goalkeepers.forEach(gk => {
-                    const target = chooseTeamForPlayer(teams, gk, size);
-                    target.players.push(gk);
-                    target.totalScore += gk.score;
-                });
-                goalkeepers.forEach(gk => {
-                    const idx = sortedRoster.findIndex(p => p.id === gk.id);
-                    if (idx >= 0) sortedRoster.splice(idx, 1);
-                });
-            }
-
-            sortedRoster.forEach(player => {
-                const target = chooseTeamForPlayer(teams, player, size);
-                target.players.push(player);
-                target.totalScore += player.score;
-            });
-
-            return teams.map(t => ({
-                ...t,
-                average: Number((t.totalScore / t.players.length).toFixed(2))
-            }));
-        }
-
-        function getTeamsMeta(teams) {
-            const averages = teams.map(t => t.average);
-            const min = Math.min(...averages);
-            const max = Math.max(...averages);
-            return {
-                min: min.toFixed(1),
-                max: max.toFixed(1),
-                diff: (max - min).toFixed(1)
-            };
-        }
-
-        function renderResults(teams) {
-            const meta = getTeamsMeta(teams);
-            elements.resultsSummary.innerHTML = '';
-            elements.resultsGrid.innerHTML = '';
-            elements.resultsMeta.textContent = `Faixa: ${meta.min} a ${meta.max} | Diferença: ${meta.diff}`;
-
-            [
-                { label: 'Times', value: teams.length },
-                { label: 'Mínimo', value: meta.min },
-                { label: 'Máximo', value: meta.max },
-                { label: 'Diferença', value: meta.diff }
-            ].forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'rounded-2xl border border-white/10 bg-black/25 p-3 text-center';
-                card.innerHTML = `<p class="text-xs text-white/40 mb-1">${item.label}</p><p class="text-lg font-bold text-white">${item.value}</p>`;
-                elements.resultsSummary.appendChild(card);
-            });
-
-            teams.forEach(team => {
-                const card = document.createElement('div');
-                card.className = 'rounded-2xl border border-white/10 bg-black/25 p-4';
-                card.innerHTML = `
-                    <div class="mb-3 flex items-center justify-between">
-                        <h4 class="font-bold text-white">${team.name}</h4>
-                        <span class="text-sm font-bold text-arena-neon">${team.average.toFixed(1)}</span>
-                    </div>
-                    <ul class="space-y-2">
-                        ${team.players.map(p => `<li class="text-xs text-white/75">${p.name} (${p.score.toFixed(1)})</li>`).join('')}
-                    </ul>
-                `;
-                elements.resultsGrid.appendChild(card);
-            });
-
-            switchScreen('screenResults');
-            saveState();
-        }
-
         function renderTournament() {
+            // Calcular tabela
+            const standings = new Map();
+            currentTeams.forEach(team => {
+                standings.set(team.id, { 
+                    name: team.name, 
+                    pts: 0, 
+                    j: 0, 
+                    v: 0, 
+                    e: 0, 
+                    d: 0, 
+                    gf: 0, 
+                    gc: 0 
+                });
+            });
+
+            tournamentMatches.forEach(match => {
+                const home = standings.get(match.homeTeamId);
+                const away = standings.get(match.awayTeamId);
+                if (!home || !away) return;
+
+                home.j += 1;
+                away.j += 1;
+                home.gf += match.homeScore;
+                home.gc += match.awayScore;
+                away.gf += match.awayScore;
+                away.gc += match.homeScore;
+
+                if (match.homeScore > match.awayScore) {
+                    home.pts += 3;
+                    home.v += 1;
+                    away.d += 1;
+                } else if (match.awayScore > match.homeScore) {
+                    away.pts += 3;
+                    away.v += 1;
+                    home.d += 1;
+                } else {
+                    home.pts += 1;
+                    away.pts += 1;
+                    home.e += 1;
+                    away.e += 1;
+                }
+            });
+
+            // Renderizar abas de partidas
             elements.matchTabs.innerHTML = '';
-            elements.matchWorkspace.innerHTML = '';
-            elements.standingsBody.innerHTML = '';
-            elements.scorersList.innerHTML = '';
-
-            if (!tournamentMatches.length) {
-                elements.matchWorkspace.innerHTML = '<div class="text-center py-8 text-white/40">Nenhuma partida criada</div>';
-                return;
-            }
-
-            // Tabs
-            tournamentMatches.forEach((match, idx) => {
+            tournamentMatches.forEach(match => {
                 const tab = document.createElement('button');
                 tab.type = 'button';
-                tab.className = 'rounded-full border border-white/10 px-4 py-2 text-xs font-bold uppercase text-white/70 hover:border-white flex-shrink-0';
+                tab.className = `rounded-xl px-3 py-2 text-xs font-bold uppercase flex-shrink-0 transition ${match.id === activeMatchId ? 'bg-arena-neon text-black' : 'border border-white/10 text-white/70 hover:border-white/30'}`;
                 tab.textContent = `P${match.round}`;
-                tab.addEventListener('click', () => openMatchModal(match.id));
+                tab.onclick = () => setActiveMatch(match.id);
                 elements.matchTabs.appendChild(tab);
             });
 
-            // Displays all matches
-            tournamentMatches.forEach(match => {
-                const homeTeam = getTeamById(match.homeTeamId);
-                const awayTeam = getTeamById(match.awayTeamId);
-                
-                const matchCard = document.createElement('div');
-                matchCard.className = 'rounded-2xl border border-white/10 bg-black/25 p-4 cursor-pointer hover:bg-black/35 transition';
-                matchCard.innerHTML = `
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="text-right">
-                            <p class="font-bold text-white text-sm">${homeTeam?.name || 'Time 1'}</p>
-                            <p class="text-xs text-white/60">Partida ${match.round}</p>
+            // Renderizar workspace
+            elements.matchWorkspace.innerHTML = '';
+            if (activeMatchId) {
+                const match = findMatchById(activeMatchId);
+                if (match) {
+                    const homeTeam = getTeamById(match.homeTeamId);
+                    const awayTeam = getTeamById(match.awayTeamId);
+                    const ws = document.createElement('div');
+                    ws.className = 'rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3';
+                    ws.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="text-center flex-1">
+                                <p class="text-xs font-bold uppercase text-white/45">${homeTeam?.name || 'Time 1'}</p>
+                                <p class="text-2xl font-bold text-arena-neon">${match.homeScore}</p>
+                            </div>
+                            <div class="text-center text-white/60 font-bold">×</div>
+                            <div class="text-center flex-1">
+                                <p class="text-xs font-bold uppercase text-white/45">${awayTeam?.name || 'Time 2'}</p>
+                                <p class="text-2xl font-bold text-arena-neon">${match.awayScore}</p>
+                            </div>
                         </div>
-                        <div class="text-center">
-                            <p class="font-bold text-arena-neon text-lg">${match.homeScore} x ${match.awayScore}</p>
-                        </div>
-                        <div class="text-left">
-                            <p class="font-bold text-white text-sm">${awayTeam?.name || 'Time 2'}</p>
-                            <p class="text-xs text-white/60">Partida ${match.round}</p>
-                        </div>
+                        <button type="button" data-match-id="${match.id}" class="w-full rounded-xl bg-arena-neon/10 border border-arena-neon/30 px-3 py-2 text-xs font-bold uppercase text-arena-neon hover:bg-arena-neon/20 transition data-action-edit-match">✏️ Editar</button>
+                    `;
+                    elements.matchWorkspace.appendChild(ws);
+                }
+            }
+
+            // Renderizar tabela
+            elements.standingsBody.innerHTML = '';
+            const sorted = Array.from(standings.values()).sort((a, b) => b.pts - a.pts);
+            sorted.forEach((team, idx) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-white/10 hover:bg-white/5';
+                row.innerHTML = `
+                    <td class="py-2 pr-3 font-semibold text-white">${idx + 1}. ${team.name}</td>
+                    <td class="py-2 pr-3 text-arena-neon font-bold">${team.pts}</td>
+                    <td class="py-2 pr-3 text-white/70">${team.j}</td>
+                    <td class="py-2 pr-3 text-green-300">${team.v}</td>
+                `;
+                elements.standingsBody.appendChild(row);
+            });
+        }
+
+        function setActiveMatch(matchId) {
+            activeMatchId = matchId;
+            renderTournament();
+        }
+
+        function handleDraw() {
+            if (players.size < clampTeamSize(elements.teamSize.value) * 2) {
+                showToast('Jogadores insuficientes', 'danger');
+                return;
+            }
+
+            const roster = Array.from(players.values());
+            const size = clampTeamSize(elements.teamSize.value);
+            const topTwo = elements.ruleTopTwo.checked;
+            const spreadGK = elements.ruleGoalkeepers.checked;
+
+            const sortByScore = (a, b) => getPlayerScore(b) - getPlayerScore(a);
+            let available = [...roster].sort(sortByScore);
+
+            const t1 = [], t2 = [];
+            
+            if (topTwo && available.length >= 2) {
+                const top = available.splice(0, 2);
+                t1.push(top[0]);
+                t2.push(top[1]);
+            }
+
+            if (spreadGK) {
+                const gks = available.filter(p => p.position === 'goleiro');
+                available = available.filter(p => p.position !== 'goleiro');
+                if (gks.length >= 2) {
+                    t1.push(gks[0]);
+                    t2.push(gks[1]);
+                    available = available.filter(p => !gks.includes(p));
+                } else if (gks.length === 1) {
+                    t1.push(gks[0]);
+                    available = available.filter(p => p !== gks[0]);
+                }
+            }
+
+            available.sort(() => Math.random() - 0.5);
+            while (t1.length < size && available.length > 0) t1.push(available.shift());
+            while (t2.length < size && available.length > 0) t2.push(available.shift());
+
+            currentTeams = [
+                { id: idFactory(), name: 'Time A', players: t1 },
+                { id: idFactory(), name: 'Time B', players: t2 }
+            ];
+
+            renderResults();
+            switchScreen('screenResults');
+        }
+
+        function renderResults() {
+            elements.resultsSummary.innerHTML = '';
+            elements.resultsGrid.innerHTML = '';
+
+            currentTeams.forEach((team, idx) => {
+                // Cartão resumo
+                const card = document.createElement('div');
+                card.className = 'rounded-2xl border border-white/10 bg-black/30 p-3 text-center';
+                card.innerHTML = `
+                    <p class="text-xs text-white/60 mb-1">Time ${String.fromCharCode(65 + idx)}</p>
+                    <p class="font-bold text-arena-neon text-lg mb-1">${team.players.reduce((sum, p) => sum + getPlayerScore(p), 0).toFixed(1)}</p>
+                    <p class="text-xs text-white/50">${team.players.length} jogadores</p>
+                `;
+                elements.resultsSummary.appendChild(card);
+
+                // Escalação completa
+                const grid = document.createElement('div');
+                grid.className = 'rounded-2xl border border-white/10 bg-arena-panel p-4';
+                grid.innerHTML = `
+                    <h4 class="font-display text-lg uppercase italic mb-3 text-arena-neon">Time ${String.fromCharCode(65 + idx)}</h4>
+                    <div class="space-y-2">
+                        ${team.players.map(p => `
+                            <div class="flex items-center justify-between rounded-lg bg-black/30 p-2">
+                                <span class="font-semibold text-white text-sm">${p.name}</span>
+                                <span class="text-xs font-bold text-arena-neon">${getPlayerScore(p)}</span>
+                            </div>
+                        `).join('')}
                     </div>
                 `;
-                matchCard.addEventListener('click', () => openMatchModal(match.id));
-                elements.matchWorkspace.appendChild(matchCard);
+                elements.resultsGrid.appendChild(grid);
             });
 
-            // Calcular standing
-            const standings = {};
-            currentTeams.forEach(team => {
-                standings[team.id] = { name: team.name, pts: 0, j: 0, v: 0 };
-            });
-
-            tournamentMatches.forEach(match => {
-                if (standings[match.homeTeamId]) {
-                    standings[match.homeTeamId].j += 1;
-                    if (match.homeScore > match.awayScore) {
-                        standings[match.homeTeamId].pts += 3;
-                        standings[match.homeTeamId].v += 1;
-                    } else if (match.homeScore === match.awayScore) {
-                        standings[match.homeTeamId].pts += 1;
-                    }
-                }
-                if (standings[match.awayTeamId]) {
-                    standings[match.awayTeamId].j += 1;
-                    if (match.awayScore > match.homeScore) {
-                        standings[match.awayTeamId].pts += 3;
-                        standings[match.awayTeamId].v += 1;
-                    } else if (match.awayScore === match.homeScore) {
-                        standings[match.awayTeamId].pts += 1;
-                    }
-                }
-            });
-
-            // Render standing
-            Object.values(standings)
-                .sort((a, b) => b.pts - a.pts)
-                .forEach(team => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="pb-3 pr-3">${team.name}</td>
-                        <td class="pb-3 pr-3">${team.pts}</td>
-                        <td class="pb-3 pr-3">${team.j}</td>
-                        <td class="pb-3 pr-3">${team.v}</td>
-                    `;
-                    elements.standingsBody.appendChild(row);
-                });
-
-            // Artilharia
-            const scorers = {};
-            tournamentMatches.forEach(match => {
-                match.homeScorers?.forEach(name => {
-                    scorers[name] = (scorers[name] || 0) + 1;
-                });
-                match.awayScorers?.forEach(name => {
-                    scorers[name] = (scorers[name] || 0) + 1;
-                });
-            });
-
-            Object.entries(scorers)
-                .sort((a, b) => b[1] - a[1])
-                .forEach(([name, goals]) => {
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between';
-                    div.innerHTML = `<span>${name}</span><span class="font-bold text-arena-neon">${goals}</span>`;
-                    elements.scorersList.appendChild(div);
-                });
-
-            saveState();
+            const avgT1 = currentTeams[0].players.reduce((sum, p) => sum + getPlayerScore(p), 0) / currentTeams[0].players.length;
+            const avgT2 = currentTeams[1].players.reduce((sum, p) => sum + getPlayerScore(p), 0) / currentTeams[1].players.length;
+            const diff = (avgT1 - avgT2).toFixed(2);
+            elements.resultsMeta.textContent = `Diferença: ${Math.abs(diff)} (Time ${diff > 0 ? 'A' : 'B'} é mais forte)`;
         }
 
         // EVENT LISTENERS
         elements.btnImport.addEventListener('click', handleImport);
         elements.btnAddPlayer.addEventListener('click', () => openPlayerModal());
         elements.btnCloseModal.addEventListener('click', closePlayerModal);
-        elements.btnDeleteFromModal.addEventListener('click', () => {
-            if (editingPlayerId) removePlayer(editingPlayerId);
-        });
         elements.btnSavePlayer.addEventListener('click', savePlayerFromModal);
+        elements.btnDeleteFromModal.addEventListener('click', () => removePlayer(editingPlayerId));
+
+        elements.listContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const playerId = btn.dataset.playerId;
+            if (btn.dataset.action === 'edit') openPlayerModal(playerId);
+            if (btn.dataset.action === 'remove') removePlayer(playerId);
+        });
 
         elements.navTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const screenId = tab.dataset.screen;
-                switchScreen(screenId);
-            });
+            tab.addEventListener('click', () => switchScreen(tab.dataset.screen));
         });
 
-        elements.btnDraw.addEventListener('click', () => {
-            const size = validateTeamSize();
-            if (!size || players.size === 0) return;
-
-            const roster = Array.from(players.values()).map(p => ({
-                ...p,
-                score: getPlayerScore(p)
-            }));
-
-            const rules = {
-                separateTopTwo: elements.ruleTopTwo.checked,
-                spreadGoalkeepers: elements.ruleGoalkeepers.checked
-            };
-
-            currentTeams = buildBalancedTeams(roster, size, rules);
-            tournamentMatches = [];
-            renderResults(currentTeams);
-        });
-
-        elements.btnRedraw.addEventListener('click', () => {
-            if (players.size === 0) return;
-            elements.btnDraw.click();
-        });
-
+        elements.btnDraw.addEventListener('click', handleDraw);
+        elements.btnRedraw.addEventListener('click', handleDraw);
         elements.btnOpenTournament.addEventListener('click', () => {
-            switchScreen('screenTournament');
+            tournamentMatches = [];
             renderTournament();
+            switchScreen('screenTournament');
         });
 
         elements.btnAddMatch.addEventListener('click', () => openMatchModal());
         elements.btnCloseMatchModal.addEventListener('click', closeMatchModal);
-        elements.btnDeleteMatch.addEventListener('click', () => {
-            if (editingMatchId) deleteMatch(editingMatchId);
-        });
         elements.btnSaveMatch.addEventListener('click', saveMatchFromModal);
+        elements.btnDeleteMatch.addEventListener('click', () => deleteMatch(editingMatchId));
+
+        elements.matchHomeScore.addEventListener('input', updateMatchResultDisplay);
+        elements.matchAwayScore.addEventListener('input', updateMatchResultDisplay);
+
+        elements.matchWorkspace.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action-edit-match]');
+            if (btn) openMatchModal(btn.dataset.matchId);
+        });
+
         elements.btnResetTournament.addEventListener('click', () => {
             if (window.confirm('Limpar todas as partidas?')) {
                 tournamentMatches = [];
                 renderTournament();
-                saveState();
+                showToast('Partidas limpas', 'success');
             }
         });
+
         elements.btnBackToResults.addEventListener('click', () => switchScreen('screenResults'));
 
-        // Event delegation para player actions
-        elements.listContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('button[data-action]');
-            if (!btn) return;
-
-            const action = btn.dataset.action;
-            const playerId = btn.dataset.playerId;
-
-            if (action === 'edit') {
-                openPlayerModal(playerId);
-            } else if (action === 'remove') {
-                removePlayer(playerId);
-            }
+        // POSIÇÕES NO MODAL
+        POSITION_OPTIONS.forEach(pos => {
+            const opt = document.createElement('option');
+            opt.value = pos.value;
+            opt.textContent = pos.label;
+            elements.modalPlayerPosition.appendChild(opt);
         });
 
-        // Populate position select in modal
-        function populatePositionSelect() {
-            elements.modalPlayerPosition.innerHTML = '';
-            POSITION_OPTIONS.forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt.value;
-                option.textContent = opt.label;
-                elements.modalPlayerPosition.appendChild(option);
-            });
-        }
-
-        // STATE MANAGEMENT
-        function saveState() {
-            const state = {
-                players: Array.from(players.entries()),
-                currentTeams,
-                tournamentMatches
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        }
-
+        // LOAD STATE
         function loadState() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (!saved) return;
-
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return;
             try {
-                const state = JSON.parse(saved);
-                players = new Map(state.players);
-                currentTeams = state.currentTeams || [];
-                tournamentMatches = state.tournamentMatches || [];
+                const data = JSON.parse(stored);
+                if (data.players) {
+                    data.players.forEach(p => {
+                        players.set(normalizeName(p.name), p);
+                    });
+                }
+                if (data.currentTeams) currentTeams = data.currentTeams;
+                if (data.tournamentMatches) tournamentMatches = data.tournamentMatches;
+                syncUI();
             } catch (e) {
                 console.error('Erro ao carregar estado:', e);
             }
         }
 
-        // INIT
-        populatePositionSelect();
+        function saveState() {
+            const data = {
+                players: Array.from(players.values()),
+                currentTeams,
+                tournamentMatches
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
         loadState();
-        syncUI();
     </script>
 </body>
 </html>
