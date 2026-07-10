@@ -1182,3 +1182,162 @@
             switchScreen('screenResults');
             saveState();
         }
+
+        function renderResults() {
+            elements.resultsSummary.innerHTML = '';
+            elements.resultsGrid.innerHTML = '';
+
+            tournamentTeams.forEach((team, idx) => {
+                // Cartão resumo
+                const card = document.createElement('div');
+                card.className = 'rounded-2xl border border-white/10 bg-black/30 p-3 text-center';
+                card.innerHTML = `
+                    <p class="text-xs text-white/60 mb-1">Time ${String.fromCharCode(65 + idx)}</p>
+                    <p class="font-bold text-arena-neon text-lg mb-1">${team.players.reduce((sum, p) => sum + getPlayerScore(p), 0).toFixed(1)}</p>
+                    <p class="text-xs text-white/50">${team.players.length} jogadores</p>
+                `;
+                elements.resultsSummary.appendChild(card);
+
+                // Escalação completa
+                const grid = document.createElement('div');
+                grid.className = 'rounded-2xl border border-white/10 bg-arena-panel p-4';
+                grid.innerHTML = `
+                    <h4 class="font-display text-lg uppercase italic mb-3 text-arena-neon">Time ${String.fromCharCode(65 + idx)}</h4>
+                    <div class="space-y-2">
+                        ${team.players.map(p => `
+                            <div class="flex items-center justify-between rounded-lg bg-black/30 p-2">
+                                <span class="font-semibold text-white text-sm">${p.name}</span>
+                                <span class="text-xs font-bold text-arena-neon">${getPlayerScore(p)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                elements.resultsGrid.appendChild(grid);
+            });
+
+            const teamAverages = tournamentTeams.map(team =>
+                team.players.reduce((sum, p) => sum + getPlayerScore(p), 0) / team.players.length
+            );
+
+            const strongest = Math.max(...teamAverages);
+            const weakest = Math.min(...teamAverages);
+
+            elements.resultsMeta.textContent =
+                `${tournamentTeams.length} times gerados • Diferença média ${(strongest - weakest).toFixed(2)}`;
+        }
+
+        
+        function copyTeamsToClipboard() {
+            if (!tournamentTeams.length) {
+                showToast('Nenhum time sorteado', 'danger');
+                return;
+            }
+
+            let message = '🏆 FUT-DESASTRE - TIMES SORTEADOS\n\n';
+
+            tournamentTeams.forEach(team => {
+                message += `📋 ${team.name}\n`;
+                team.players.forEach(player => {
+                    message += `• ${player.name}\n`;
+                });
+                message += '\n';
+            });
+
+            navigator.clipboard.writeText(message)
+                .then(() => showToast('Times copiados para WhatsApp!', 'success'))
+                .catch(() => showToast('Erro ao copiar', 'danger'));
+        }
+
+// EVENT LISTENERS
+        elements.btnImport.addEventListener('click', handleImport);
+        elements.btnAddPlayer.addEventListener('click', () => openPlayerModal());
+        elements.btnCloseModal.addEventListener('click', closePlayerModal);
+        elements.btnSavePlayer.addEventListener('click', savePlayerFromModal);
+        elements.btnDeleteFromModal.addEventListener('click', () => removePlayer(editingPlayerId));
+
+        elements.listContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const playerId = btn.dataset.playerId;
+            if (btn.dataset.action === 'edit') openPlayerModal(playerId);
+            if (btn.dataset.action === 'remove') removePlayer(playerId);
+        });
+
+        elements.navTabs.forEach(tab => {
+            tab.addEventListener('click', () => switchScreen(tab.dataset.screen));
+        });
+
+        elements.btnDraw.addEventListener('click', handleDraw);
+        elements.btnRedraw.addEventListener('click', handleDraw);
+        elements.btnCopyTeams?.addEventListener('click', copyTeamsToClipboard);
+        elements.btnOpenTournament.addEventListener('click', () => {
+            tournamentMatches = [];
+            activeMatchId = null;
+            renderTournament();
+            switchScreen('screenTournament');
+        });
+
+        elements.btnAddMatch.addEventListener('click', () => openMatchModal());
+        elements.btnCloseMatchModal.addEventListener('click', closeMatchModal);
+        elements.btnSaveMatch.addEventListener('click', saveMatchFromModal);
+        elements.btnDeleteMatch.addEventListener('click', () => deleteMatch(editingMatchId));
+
+        elements.matchHomeScore.addEventListener('input', updateMatchResultDisplay);
+        elements.matchAwayScore.addEventListener('input', updateMatchResultDisplay);
+
+        elements.matchWorkspace.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action-edit-match]');
+            if (btn) openMatchModal(btn.dataset.matchId);
+        });
+
+        elements.btnResetTournament.addEventListener('click', () => {
+            if (window.confirm('Limpar todas as partidas?')) {
+                tournamentMatches = [];
+                activeMatchId = null;
+                renderTournament();
+                showToast('Partidas limpas', 'success');
+            }
+        });
+
+        elements.btnBackToResults.addEventListener('click', () => switchScreen('screenResults'));
+
+        // POSIÇÕES NO MODAL
+        POSITION_OPTIONS.forEach(pos => {
+            const opt = document.createElement('option');
+            opt.value = pos.value;
+            opt.textContent = pos.label;
+            elements.modalPlayerPosition.appendChild(opt);
+        });
+
+        // LOAD STATE
+        function loadState() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return;
+            try {
+                const data = JSON.parse(stored);
+                if (data.players) {
+                    data.players.forEach(p => {
+                        players.set(normalizeName(p.name), p);
+                    });
+                }
+                if (data.tournamentTeams) tournamentTeams = data.tournamentTeams;
+                if (data.tournamentMatches) tournamentMatches = data.tournamentMatches;
+                syncUI();
+            } catch (e) {
+                console.error('Erro ao carregar estado:', e);
+            }
+        }
+
+        function saveState() {
+            const data = {
+                players: Array.from(players.values()),
+                tournamentTeams,
+                tournamentMatches
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        loadState();
+    </script>
+</body>
+</html>
